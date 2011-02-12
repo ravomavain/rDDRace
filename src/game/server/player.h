@@ -106,6 +106,7 @@ public:
 		int m_Armor;
 		int m_LastMove;
 		vec2 m_PrevPos;
+		vec2 m_SavedPos;
 		int m_ActiveWeapon;
 		int m_LastWeapon;
 		bool m_Respawn;

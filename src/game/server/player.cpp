@@ -278,6 +278,7 @@ void CPlayer::LoadCharacter()
 	Character->SetArmor(m_PauseInfo.m_Armor);
 	Character->m_LastMove = m_PauseInfo.m_LastMove;
 	Character->m_PrevPos = m_PauseInfo.m_PrevPos;
+	Character->m_SavedPos = m_PauseInfo.m_SavedPos;
 	Character->SetActiveWeapon(m_PauseInfo.m_ActiveWeapon);
 	Character->SetLastWeapon(m_PauseInfo.m_LastWeapon);
 	Character->m_HammerType = m_PauseInfo.m_HammerType;
@@ -303,6 +304,7 @@ void CPlayer::SaveCharacter()
 	m_PauseInfo.m_Armor = Character->GetArmor();
 	m_PauseInfo.m_LastMove = Character->m_LastMove;
 	m_PauseInfo.m_PrevPos = Character->m_PrevPos;
+	m_PauseInfo.m_SavedPos = Character->m_SavedPos;
 	m_PauseInfo.m_ActiveWeapon = Character->GetActiveWeapon();
 	m_PauseInfo.m_LastWeapon = Character->GetLastWeapon();
 	m_PauseInfo.m_HammerType = Character->m_HammerType;
