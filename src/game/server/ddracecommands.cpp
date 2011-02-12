@@ -1268,15 +1268,17 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 
 	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
 	{
-
 		CCharacter* pChr = pPlayer->GetCharacter();
-		if(pChr && pChr->m_SavedPos && !(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
+		if(pChr && pChr->m_SavedPos && pChr->m_FreezeTime)
 		{
-			pChr->Core()->m_Pos = pChr->m_SavedPos;
-		}
-		else if(pChr->m_FreezeTime==0)
-		{
-			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You must be freezed.");
+			if(!(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
+			{
+				pChr->Core()->m_Pos = pChr->m_SavedPos;
+			}
+			else if(pChr->m_FreezeTime==0)
+			{
+				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You must be freezed.");
+			}
 		}
 	}
 }
