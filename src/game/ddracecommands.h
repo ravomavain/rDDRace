@@ -67,6 +67,8 @@ CONSOLE_COMMAND("muteid", "vi", CFGFLAG_SERVER, ConMuteID, this, "", 2);
 CONSOLE_COMMAND("muteip", "si", CFGFLAG_SERVER, ConMuteIP, this, "", 2);
 CONSOLE_COMMAND("unmute", "i", CFGFLAG_SERVER, ConUnmute, this, "", 2);
 CONSOLE_COMMAND("mutes", "", CFGFLAG_SERVER, ConMutes, this, "", 2);
+CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", -1)
+CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", -1)
 
 #undef CONSOLE_COMMAND
 

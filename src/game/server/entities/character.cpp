@@ -603,6 +603,7 @@ void CCharacter::Tick()
 		m_pPlayer->m_ForceBalanced = false;
 	}*/
 	DDRaceTick();
+	SavePos();
 
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
@@ -1619,4 +1620,13 @@ void CCharacter::DDRaceInit()
 	}
 	m_DefEmote = EMOTE_NORMAL;
 	m_DefEmoteReset = -1;
+}
+
+void CCharacter::SavePos()
+{
+	if(g_Config.m_SvRescue && m_pPlayer->GetTeam() != TEAM_SPECTATORS)
+	{
+		if(!m_FreezeTime && IsGrounded() && m_Pos==m_PrevPos)
+			m_SavedPos=m_Pos;
+	}
 }

@@ -248,6 +248,7 @@ private:
 	static void ConMuteIP(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConUnmute(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMutes(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConRescue(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	static struct CMute m_aMutes[MAX_MUTES];
 	void Mute(const char *pIP, int Secs, const char *pDisplayName);

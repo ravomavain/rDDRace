@@ -142,6 +142,7 @@ private:
 	void DDRaceTick();
 	void DDRacePostCoreTick();
 	void HandleBroadcast();
+	void SavePos();
 public:
 	CGameTeams* Teams();
 	bool Freeze(int Time);
@@ -168,6 +169,7 @@ public:
 	int m_StartTime;
 	int m_RefreshTime;
 	vec2 m_PrevPos;
+	vec2 m_SavedPos;
 	int m_CpTick;
 	int m_CpActive;
 	float m_CpCurrent[25];
