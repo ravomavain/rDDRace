@@ -1270,11 +1270,9 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 	{
 
 		CCharacter* pChr = pPlayer->GetCharacter();
-		if(pChr && !(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
+		if(pChr && pChr->m_SavedPos && !(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
 		{
 			pChr->Core()->m_Pos = pChr->m_SavedPos;
-			if(!g_Config.m_SvCheatTime)
-				pChr->m_DDRaceState = DDRACE_CHEAT;
 		}
 		else if(pChr->m_FreezeTime==0)
 		{

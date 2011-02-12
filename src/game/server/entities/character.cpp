@@ -1624,7 +1624,7 @@ void CCharacter::DDRaceInit()
 
 void CCharacter::SavePos()
 {
-	if(g_Config.m_SvRescue && m_pPlayer->GetTeam() != TEAM_SPECTATORS)
+	if(g_Config.m_SvRescue && m_Pos)
 	{
 		if(!m_FreezeTime && IsGrounded() && m_Pos==m_PrevPos)
 			m_SavedPos=m_Pos;
