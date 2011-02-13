@@ -551,7 +551,7 @@ int CEditor::PopupSelectGametileOp(CEditor *pEditor, CUIRect View)
 {
 	/*	This is for scripts/update_localization.py to work, don't remove!
 		Localize("Clear"); Localize("Collision"); Localize("Death"); Localize("Unhookable"); */
-	static const char *s_pButtonNames[] = { "Clear", "Collision", "Death", "Unhookable" };
+	static const char *s_pButtonNames[] = { "Clear", "Collision", "Death", "Unhookable", "Freeze", "Unfreeze", "Deep Freeze", "Deep Unfreeze" };
 	static unsigned s_NumButtons = sizeof(s_pButtonNames) / sizeof(char*);
 	CUIRect Button;
 
@@ -570,7 +570,7 @@ void CEditor::PopupSelectGametileOpInvoke(float x, float y)
 {
 	static int s_SelectGametileOpPopupId = 0;
 	s_GametileOpSelected = -1;
-	UiInvokePopupMenu(&s_SelectGametileOpPopupId, 0, x, y, 120.0f, 70.0f, PopupSelectGametileOp);
+	UiInvokePopupMenu(&s_SelectGametileOpPopupId, 0, x, y, 120.0f, 120.0f, PopupSelectGametileOp);
 }
 
 int CEditor::PopupSelectGameTileOpResult()

@@ -466,6 +466,23 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 			m_pEditor->PopupSelectGametileOpInvoke(m_pEditor->UI()->MouseX(), m_pEditor->UI()->MouseY());
 
 		int Result = m_pEditor->PopupSelectGameTileOpResult();
+		switch(Result)
+		{
+			case 4:
+				Result = TILE_FREEZE;
+				break;
+			case 5:
+				Result = TILE_UNFREEZE;
+				break;
+			case 6:
+				Result = TILE_DFREEZE;
+				break;
+			case 7:
+				Result = TILE_DUNFREEZE;
+				break;
+			default:
+				break;
+		}
 		if(Result > -1)
 		{
 			CLayerTiles *gl = m_pEditor->m_Map.m_pGameLayer;
@@ -473,7 +490,7 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 			int h = min(gl->m_Height, m_Height);
 			for(int y = 0; y < h; y++)
 				for(int x = 0; x < w; x++)
-					if(gl->m_pTiles[y*gl->m_Width+x].m_Index >= TILE_AIR && gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_NOHOOK)
+					if((gl->m_pTiles[y*gl->m_Width+x].m_Index >= TILE_AIR && gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_NOHOOK) || (gl->m_pTiles[y*gl->m_Width+x].m_Index >= TILE_FREEZE && gl->m_pTiles[y*gl->m_Width+x].m_Index <= TILE_DUNFREEZE && gl->m_pTiles[y*gl->m_Width+x].m_Index != TILE_TELEINEVIL))
 						gl->m_pTiles[y*gl->m_Width+x].m_Index = m_pTiles[y*m_Width+x].m_Index?TILE_AIR+Result:TILE_AIR;
 
 			return 1;
