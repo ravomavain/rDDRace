@@ -830,8 +830,8 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		
 		if(DoButton_Ex(&s_TeleButton, "Teleporter", (pS && pS->m_Tele)?0:-1, &Button, 0, "Teleporter", CUI::CORNER_ALL))
 		{
-			static int s_TelePopupId = 0;
-			UiInvokePopupMenu(&s_TelePopupId, 0, UI()->MouseX(), UI()->MouseY(), 120, 23, PopupTele);
+			static int s_TelePopupID = 0;
+			UiInvokePopupMenu(&s_TelePopupID, 0, UI()->MouseX(), UI()->MouseY(), 120, 23, PopupTele);
 		}
 		// do speedup button
 		TB_Bottom.VSplitLeft(5.0f, &Button, &TB_Bottom);
@@ -839,8 +839,8 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		static int s_SpeedupButton = 0;
 		if(DoButton_Ex(&s_SpeedupButton, "Speedup", (pS && pS->m_Speedup)?0:-1, &Button, 0, "Speedup", CUI::CORNER_ALL))
 		{
-			static int s_SpeedupPopupId = 0;
-			UiInvokePopupMenu(&s_SpeedupPopupId, 0, UI()->MouseX(), UI()->MouseY(), 120, 53, PopupSpeedup);
+			static int s_SpeedupPopupID = 0;
+			UiInvokePopupMenu(&s_SpeedupPopupID, 0, UI()->MouseX(), UI()->MouseY(), 120, 53, PopupSpeedup);
 		}
 		// do switch button
 		TB_Bottom.VSplitLeft(5.0f, &Button, &TB_Bottom);
@@ -848,8 +848,8 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		static int s_SwitchButton = 0;
 		if(DoButton_Ex(&s_SwitchButton, "Switcher", (pS && pS->m_Switch)?0:-1, &Button, 0, "Switcher", CUI::CORNER_ALL))
 		{
-			static int s_SwitchPopupId = 0;
-			UiInvokePopupMenu(&s_SwitchPopupId, 0, UI()->MouseX(), UI()->MouseY(), 120, 36, PopupSwitch);
+			static int s_SwitchPopupID = 0;
+			UiInvokePopupMenu(&s_SwitchPopupID, 0, UI()->MouseX(), UI()->MouseY(), 120, 36, PopupSwitch);
 		}
 	}
 
@@ -1856,9 +1856,9 @@ void CEditor::RenderLayers(CUIRect ToolBox, CUIRect ToolBar, CUIRect View)
 					m_SelectedGroup = g;
 					m_SelectedLayer = 0;
 
-					static int s_GroupPopupId = 0;
+					static int s_GroupPopupID = 0;
 					if(Result == 2)
-						UiInvokePopupMenu(&s_GroupPopupId, 0, UI()->MouseX(), UI()->MouseY(), 120, 200, PopupGroup);
+						UiInvokePopupMenu(&s_GroupPopupID, 0, UI()->MouseX(), UI()->MouseY(), 120, 200, PopupGroup);
 				}
 				LayersBox.HSplitTop(2.0f, &Slot, &LayersBox);
 			}
@@ -3274,8 +3274,8 @@ void CEditorMap::CreateDefault(int EntitiesTexture)
 	CLayerQuads *pLayer = new CLayerQuads;
 	pLayer->m_pEditor = m_pEditor;
 	CQuad *pQuad = pLayer->NewQuad();
-	const int Width = 800000;
-	const int Height = 600000;
+	const int Width = 3200000;
+	const int Height = 2400000;
 	pQuad->m_aPoints[0].x = pQuad->m_aPoints[2].x = -Width;
 	pQuad->m_aPoints[1].x = pQuad->m_aPoints[3].x = Width;
 	pQuad->m_aPoints[0].y = pQuad->m_aPoints[1].y = -Height;
@@ -3291,9 +3291,8 @@ void CEditorMap::CreateDefault(int EntitiesTexture)
 	// add game layer and front and reset the tele, speedup and switch layer pointers
 	MakeGameGroup(NewGroup());
 	MakeGameLayer(new CLayerGame(50, 50));
-	MakeFrontLayer(new CLayerFront(50, 50));
 	m_pGameGroup->AddLayer(m_pGameLayer);
-	m_pGameGroup->AddLayer(m_pFrontLayer);
+	m_pFrontLayer = 0x0;
 	m_pTeleLayer = 0x0;
 	m_pSpeedupLayer = 0x0;
 	m_pSwitchLayer = 0x0;

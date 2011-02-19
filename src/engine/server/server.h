@@ -19,7 +19,7 @@ class CSnapIDPool
 {
 	enum
 	{
-		MAX_IDS = 16*1024,//TODO
+		MAX_IDS = 16*1024,
 	};
 
 	class CID
@@ -181,7 +181,7 @@ public:
 	struct RconResponseInfo
 	{
 		CServer *m_Server;
-		int m_ClientId;
+		int m_ClientID;
 	};
 
 	void ProcessClientPacket(CNetChunk *pPacket);
@@ -202,28 +202,28 @@ public:
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
 	int Run();
 
-	static void ConKick(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConBan(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConUnban(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConBans(IConsole::IResult *pResult, void *pUser, int ClientId);
- 	static void ConStatus(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConShutdown(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConRecord(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConStopRecord(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConMapReload(IConsole::IResult *pResult, void *pUser, int ClientId);
+	static void ConKick(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConBan(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConUnban(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConBans(IConsole::IResult *pResult, void *pUser, int ClientID);
+ 	static void ConStatus(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConShutdown(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConRecord(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConStopRecord(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConMapReload(IConsole::IResult *pResult, void *pUser, int ClientID);
 	static void ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainMaxclientsperipUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
-	static void ConLogin(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConCmdList(IConsole::IResult *pResult, void *pUser, int ClientId);
+	static void ConLogin(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConCmdList(IConsole::IResult *pResult, void *pUser, int ClientID);
 
-	static bool CompareClients(int ClientId, int Victim, void *pUser);
-	static bool ClientOnline(int ClientId, void *pUser);
+	static bool CompareClients(int ClientID, int Victim, void *pUser);
+	static bool ClientOnline(int ClientID, void *pUser);
 
 	void RegisterCommands();
 	
-	void SetRconLevel(int ClientId, int Level);
-	void CheckPass(int ClientId, const char *pPw);
+	void SetRconLevel(int ClientID, int Level);
+	void CheckPass(int ClientID, const char *pPw);
 	char *GetAnnouncementLine(char const *FileName);
 	unsigned m_AnnouncementLastLine;
 
@@ -231,9 +231,9 @@ public:
 	virtual void SnapFreeID(int ID);
 	virtual void *SnapNewItem(int Type, int ID, int Size);
 	void SnapSetStaticsize(int ItemType, int Size);
-	static void ConAddBanmaster(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConBanmasters(IConsole::IResult *pResult, void *pUser, int ClientId);
-	static void ConClearBanmasters(IConsole::IResult *pResult, void *pUser, int ClientId);
+	static void ConAddBanmaster(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConBanmasters(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConClearBanmasters(IConsole::IResult *pResult, void *pUser, int ClientID);
 	NETADDR GetClientIP(int ClientID);
 };
 

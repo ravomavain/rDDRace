@@ -258,13 +258,13 @@ std::list<class CCharacter *> CGameWorld::IntersectedCharacters(vec2 Pos0, vec2 
 	return listOfChars;
 }
 
-void CGameWorld::ReleaseHooked(int ClientId)
+void CGameWorld::ReleaseHooked(int ClientID)
 {
 	CCharacter *pChr = (CCharacter *)CGameWorld::FindFirst(CGameWorld::ENTTYPE_CHARACTER);
 		for(; pChr; pChr = (CCharacter *)pChr->TypeNext())
 		{
 			CCharacterCore* Core = pChr->Core();
-			if(Core->m_HookedPlayer == ClientId && !pChr->m_Super)
+			if(Core->m_HookedPlayer == ClientID && !pChr->m_Super)
 			{
 				Core->m_HookedPlayer = -1;
 				Core->m_HookState = HOOK_RETRACTED;

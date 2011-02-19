@@ -56,19 +56,23 @@ CONSOLE_COMMAND("rank", "?r", CFGFLAG_SERVER, ConRank, this, "Shows the rank of 
 CONSOLE_COMMAND("rules", "", CFGFLAG_SERVER, ConRules, this, "Shows the server rules", -1)
 CONSOLE_COMMAND("team", "?i", CFGFLAG_SERVER, ConJoinTeam, this, "Lets you join team i (shows your team if left blank)", -1)
 CONSOLE_COMMAND("top5", "?i", CFGFLAG_SERVER, ConTop5, this, "Shows five ranks of the ladder beginning with rank i (1 by default)", -1)
+#if defined(CONF_SQL)
+CONSOLE_COMMAND("times", "?s?i", CFGFLAG_SERVER, ConTimes, this, "/times ?s?i shows last 5 times of the server or of a player beginning with name s starting with time i (i = 1 by default)", -1)
+#endif
 CONSOLE_COMMAND("showothers", "", CFGFLAG_SERVER, ConShowOthers, this, "Whether to showplayers from other teams or not (off by default)", -1)
 
 CONSOLE_COMMAND("ask", "s", CFGFLAG_SERVER, ConAsk, this, "Ask to join a player in a team or to start one with him the asker is the leader if the player is not already in a team", -1)
 CONSOLE_COMMAND("yes", "", CFGFLAG_SERVER, ConYes, this, "Reply yes", -1)
 CONSOLE_COMMAND("no", "", CFGFLAG_SERVER, ConNo, this, "Reply no", -1)
+CONSOLE_COMMAND("strict", "", CFGFLAG_SERVER, ConToggleStrict, this, "Toggle Strictness", -1)
 CONSOLE_COMMAND("invite", "s", CFGFLAG_SERVER, ConInvite, this, "Invite a player to your team (You must be the leader)", -1)
 CONSOLE_COMMAND("mute", "", CFGFLAG_SERVER, ConMute, this, "", 2);
 CONSOLE_COMMAND("muteid", "vi", CFGFLAG_SERVER, ConMuteID, this, "", 2);
 CONSOLE_COMMAND("muteip", "si", CFGFLAG_SERVER, ConMuteIP, this, "", 2);
 CONSOLE_COMMAND("unmute", "i", CFGFLAG_SERVER, ConUnmute, this, "", 2);
 CONSOLE_COMMAND("mutes", "", CFGFLAG_SERVER, ConMutes, this, "", 2);
-CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", -1)
-CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", -1)
+CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", -1);
+CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", -1);
 
 #undef CONSOLE_COMMAND
 

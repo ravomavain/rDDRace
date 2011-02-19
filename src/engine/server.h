@@ -31,7 +31,7 @@ public:
 	virtual void GetClientIP(int ClientID, char *pIPString, int Size) = 0;
 	virtual int *LatestInput(int ClientID, int *pSize) = 0;
 
-	virtual void SetRconLevel(int ClientId, int Level) = 0;
+	virtual void SetRconLevel(int ClientID, int Level) = 0;
 	
 	virtual int SendMsg(CMsgPacker *pMsg, int Flags, int ClientID) = 0;
 
@@ -81,13 +81,15 @@ public:
 	virtual void OnClientDirectInput(int ClientID, void *pInput) = 0;
 	virtual void OnClientPredictedInput(int ClientID, void *pInput) = 0;
 	
-	virtual void OnSetAuthed(int ClientId,int Level) = 0;
+	virtual const char *Version() = 0;
+	virtual const char *NetVersion() = 0;
+
+	//DDRace
+
+	virtual void OnSetAuthed(int ClientID,int Level) = 0;
 	
 	virtual bool PlayerCollision() = 0;
 	virtual bool PlayerHooking() = 0;
-
-	virtual const char *Version() = 0;
-	virtual const char *NetVersion() = 0;
 };
 
 extern IGameServer *CreateGameServer();

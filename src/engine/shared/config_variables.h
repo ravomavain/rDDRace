@@ -109,7 +109,8 @@ MACRO_CONFIG_INT(SvServerTest, sv_server_test, 1, 0, 1, CFGFLAG_SERVER, "Whether
 
 MACRO_CONFIG_INT(SvCheats, sv_cheats, 0, 0, 1, CFGFLAG_SERVER, "Turns cheats on/off", 4)
 MACRO_CONFIG_INT(SvFreezeDelay, sv_freeze_delay, 3, 1, 30, CFGFLAG_SERVER, "How many seconds the players will remain frozen (applies to all except delayed freeze in switch layer & deepfreeze)", 4)
-MACRO_CONFIG_INT(ClDDRaceCheats, cl_race_cheats, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "",0)
+MACRO_CONFIG_INT(ClDDRaceCheats, cl_race_cheats, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable Cheats Such as Zoom",0)
+MACRO_CONFIG_INT(ClDDRaceBinds, cl_race_binds, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable Default DDrace builds when pressing the reset binds button",0)
 MACRO_CONFIG_INT(SvCheatTime, sv_cheattime, 0, 0, 1, CFGFLAG_SERVER, "Whether the time of players will be stopped on cheating or not", 4)
 MACRO_CONFIG_INT(SvEndlessSuperHook, sv_endless_super_hook, 0, 0, 1, CFGFLAG_SERVER, "Endless hook for super players on/off", 4)
 
@@ -164,8 +165,9 @@ MACRO_CONFIG_STR(SvRulesLine9, sv_rules_line9, 40, "", CFGFLAG_SERVER, "Rules li
 MACRO_CONFIG_STR(SvRulesLine10, sv_rules_line10, 40, "", CFGFLAG_SERVER, "Rules line 10", 4)
 //MACRO_CONFIG_INT(SvReconnectTime, sv_reconnect_time,5,0,9999,CFGFLAG_SERVER, "The time in seconds between leaves and joins of clients with the same ip", 3)
 
-MACRO_CONFIG_INT(SvTeam, sv_team, 0, -1, 1, CFGFLAG_SERVER, "Teams configuration", 4)
+MACRO_CONFIG_INT(SvTeam, sv_team, 1, 0, 2, CFGFLAG_SERVER, "Teams configuration (0 = off, 1 = on but optional, 2 = must play only with teams)", 4)
 MACRO_CONFIG_INT(SvTeamStrict, sv_team_strict, 0, 0, 1, CFGFLAG_SERVER, "Kill or not all team if someone left game in team", 4)
+MACRO_CONFIG_INT(SvStickyTeams, sv_sticky_teams, 1, 0, 1, CFGFLAG_SERVER, "Whether players stays in a team after death or not", 4)
 
 MACRO_CONFIG_STR(SvAnnouncementFileName, sv_announcement_filename, 24, "announcement.txt", CFGFLAG_SERVER, "file which will have the announcement, each one at a line", 3)
 MACRO_CONFIG_INT(SvAnnouncementInterval, sv_announcement_interval, 30, 15, 9999, CFGFLAG_SERVER, "time(minutes) in which the announcement will be displayed from the announcement file", 3)
@@ -177,7 +179,7 @@ MACRO_CONFIG_INT(SvSlashMe, sv_slash_me, 0, 0, 1, CFGFLAG_SERVER, "Whether /me i
 MACRO_CONFIG_INT(ConnTimeout, conn_timeout, 15, 5, 100, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Network timeout", 4)
 
 MACRO_CONFIG_INT(DbgMsg, dbg_msg, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Display or not debug messages", 3)
-MACRO_CONFIG_INT(ClShowIds, cl_show_ids, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Whether to show client ids in scoreboard", -1)
+MACRO_CONFIG_INT(ClShowIDs, cl_show_ids, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Whether to show client ids in scoreboard", -1)
 MACRO_CONFIG_INT(BrFilterGametypeStrict, br_filter_gametype_strict, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Filter gametype strict", -1)
 MACRO_CONFIG_INT(BrFilterCheats, br_filter_cheats, 0, 0, 2, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Server browser filtering cheats (default: 0 don't care, 1 must be Off, 2 must be On)", -1)
 MACRO_CONFIG_INT(BrFilterCheatTime, br_filter_cheat_time, 0, 0, 2, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Server browser filtering cheats with time (default: 0 don't care, 1 must be Off, 2 must be On)", -1)
@@ -201,9 +203,12 @@ MACRO_CONFIG_INT(ClRaceGhost, cl_race_ghost, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAV
 MACRO_CONFIG_INT(ClRaceShowGhost, cl_race_show_ghost, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Show ghost",-1)
 MACRO_CONFIG_INT(ClRaceSaveGhost, cl_race_save_ghost, 1, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Save ghost",-1)
 MACRO_CONFIG_INT(SvGlobalBantime, sv_global_ban_time, 60, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if the ban server reports it. 0 to disable", 4)
+MACRO_CONFIG_INT(ClDDRaceScoreBoard, cl_ddrace_scoreboard, 1, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Enable DDRace Scoreboard ", -1)
 // these might need some fine tuning
 MACRO_CONFIG_INT(SvChatPenalty, sv_chat_penalty, 250, 50, 1000, CFGFLAG_SERVER, "chatscore will be increased by this on every message, and decremented by 1 on every tick.", 3)
 MACRO_CONFIG_INT(SvChatThreshold, sv_chat_threshold, 1000, 50, 10000 , CFGFLAG_SERVER, "if chatscore exceeds this, the player will be muted for sv_spam_mute_duration seconds", 3)
 MACRO_CONFIG_INT(SvSpamMuteDuration, sv_spam_mute_duration, 60, 0, 3600 , CFGFLAG_SERVER, "how many seconds to mute, if player triggers mute on spam. 0 = off", 3)
+MACRO_CONFIG_INT(SvResetPickus, sv_reset_pickups, 0, 0, 1, CFGFLAG_SERVER, "Whether the weapons are reset on passing the start tile or not", 4)
+
 
 #endif

@@ -238,6 +238,8 @@ void CGameClient::OnConsoleInit()
 
 void CGameClient::OnInit()
 {
+	int64 Start = time_get();
+
 	// set the language
 	g_Localization.Load(g_Config.m_ClLanguagefile, Storage(), Console());
 	
@@ -248,8 +250,6 @@ void CGameClient::OnInit()
 	// setup item sizes
 	for(int i = 0; i < NUM_NETOBJTYPES; i++)
 		Client()->SnapSetStaticsize(i, m_NetObjHandler.GetObjSize(i));
-	
-	int64 Start = time_get();
 	
 	// load default font	
 	static CFont *pDefaultFont = 0;
@@ -280,9 +280,6 @@ void CGameClient::OnInit()
 		gs_LoadCurrent++;
 	}
 
-	// load skins
-	::gs_Skins.Init();
-	
 	// TODO: Refactor: fix threaded loading of sounds again
 	// load sounds
 	{
@@ -317,7 +314,6 @@ void CGameClient::OnInit()
 	
 	m_ServerMode = SERVERMODE_PURE;
 
-	m_IsRace = false;
 	m_DDRaceMsgSent = false;
 }
 
@@ -407,7 +403,6 @@ void CGameClient::OnReset()
 		m_All.m_paComponents[i]->OnReset();
 
 	m_Teams.Reset();
-	m_IsRace = false;
 	m_DDRaceMsgSent = false;
 }
 
@@ -619,7 +614,7 @@ void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
 	else if(MsgId == NETMSGTYPE_SV_PLAYERTIME)
 	{
 		CNetMsg_Sv_PlayerTime *pMsg = (CNetMsg_Sv_PlayerTime *)pRawMsg;
-		m_aClients[pMsg->m_Cid].m_Score = pMsg->m_Time;
+		m_aClients[pMsg->m_ClientID].m_Score = pMsg->m_Time;
 	}
 }
 
@@ -904,8 +899,6 @@ void CGameClient::OnNewSnapshot()
 		CNetMsg_Cl_IsDDRace Msg;
 		Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 		m_DDRaceMsgSent = true;
-		if(!m_IsRace)
-			m_IsRace = true;
 	}
 
 }

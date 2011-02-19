@@ -317,7 +317,7 @@ Messages = [
 	
 	NetMessage("Sv_PlayerTime", [
 		NetIntAny("m_Time"),
-		NetIntRange("m_Cid", 0, 'MAX_CLIENTS-1'),
+		NetIntRange("m_ClientID", 0, 'MAX_CLIENTS-1'),
 	]),
 	
 	NetMessage("Cl_TeamsState", [

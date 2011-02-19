@@ -209,7 +209,6 @@ int CServer::TrySetClientName(int ClientID, const char *pName)
 	// trim the name
 	str_copy(aTrimmedName, StrLtrim(pName), sizeof(aTrimmedName));
 	StrRtrim(aTrimmedName);
-	//TODO: See if this still needs commenting
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "'%s' -> '%s'", pName, aTrimmedName);
 	Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "server", aBuf);
@@ -349,14 +348,6 @@ void CServer::GetClientIP(int ClientID, char *pIPString, int Size)
 	}
 }
 	
-
-void CServer::SetClientAuthed(int ClientID, int Level) {
-	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CClient::STATE_READY)
-	{
-		return;
-	}
-	m_aClients[ClientID].m_Authed = Level;
-}
 
 int *CServer::LatestInput(int ClientID, int *size)
 {
@@ -636,23 +627,6 @@ void CServer::SendRconLineAuthed(const char *pLine, void *pUser)
 	ReentryGuard--;
 }
 
-void CServer::SendRconResponse(const char *pLine, void *pUser)
-{
-	RconResponseInfo *pInfo = (RconResponseInfo *)pUser;
-	CServer *pThis = pInfo->m_Server;
-	static volatile int ReentryGuard = 0;
-
-	if(ReentryGuard)
-		return;
-
-	ReentryGuard++;
-
-	if(pThis->m_aClients[pInfo->m_ClientId].m_State != CClient::STATE_EMPTY)
-			pThis->SendRconLine(pInfo->m_ClientId, pLine);
-
-	ReentryGuard--;
-}
-
 void CServer::ProcessClientPacket(CNetChunk *pPacket)
 {
 	int ClientID = pPacket->m_ClientID;
@@ -846,7 +820,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 
 						RconResponseInfo Info;
 						Info.m_Server = this;
-						Info.m_ClientId = ClientID;
+						Info.m_ClientID = ClientID;
 
 						Console()->ExecuteLine(pCmd, m_aClients[ClientID].m_Authed, ClientID, SendRconLineAuthed, this, SendRconResponse, &Info);
 						m_RconClientID = -1;
@@ -981,9 +955,9 @@ void CServer::SendServerInfo(NETADDR *pAddr, int Token)
 	i |= SERVER_FLAG_VERSION;
 	if(g_Config.m_Password[0])   // password set
 		i |= SERVER_FLAG_PASSWORD;
-	if(g_Config.m_SvTeam == 0)
+	if(g_Config.m_SvTeam == 1)
 		i |= SERVER_FLAG_TEAMS1;
-	else if(g_Config.m_SvTeam == 1)
+	else if(g_Config.m_SvTeam == 2)
 		i |= SERVER_FLAG_TEAMS2;
 	if(g_Config.m_SvTeamStrict)
 		i |= SERVER_FLAG_STRICTTEAMS;
@@ -1245,9 +1219,9 @@ int CServer::Run()
 	}
 
 	m_NetServer.SetCallbacks(NewClientCallback, DelClientCallback, this);
-
+	
 	Console()->ExecuteFile(SERVER_BANMASTERFILE, 0, 0, 0, 0, 4);
-		
+
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "server name is '%s'", g_Config.m_SvName);
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
@@ -1417,7 +1391,7 @@ void CServer::ConKick(IConsole::IResult *pResult, void *pUser, int ClientID)
 		((CServer *)pUser)->Kick(Victim, "Kicked by console");
 }
 
-void CServer::ConBan(IConsole::IResult *pResult, void *pUser, int ClientId1)
+void CServer::ConBan(IConsole::IResult *pResult, void *pUser, int ClientID)
 {
 	NETADDR Addr;
 	CServer *pServer = (CServer *)pUser;
@@ -1449,7 +1423,7 @@ void CServer::ConBan(IConsole::IResult *pResult, void *pUser, int ClientId1)
 			Addr.port = Temp.port = 0;
 			if(net_addr_comp(&Addr, &Temp) == 0)
 			{
-				if ((((CServer *)pUser)->m_aClients[ClientId1].m_Authed > 0) && ((CServer *)pUser)->m_aClients[ClientId1].m_Authed <= ((CServer *)pUser)->m_aClients[i].m_Authed)
+				if ((((CServer *)pUser)->m_aClients[ClientID].m_Authed > 0) && ((CServer *)pUser)->m_aClients[ClientID].m_Authed <= ((CServer *)pUser)->m_aClients[i].m_Authed)
 				{
 					pServer->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "you can\'t ban a player with higher or same level");
 					return;
@@ -1460,24 +1434,24 @@ void CServer::ConBan(IConsole::IResult *pResult, void *pUser, int ClientId1)
 	}
 	else if(StrAllnum(pStr))
 	{
-		int ClientID = str_toint(pStr);
+		int TempClientID = str_toint(pStr);
 
-		if(ClientID < 0 || ClientID >= MAX_CLIENTS || pServer->m_aClients[ClientID].m_State == CClient::STATE_EMPTY)
+		if(TempClientID < 0 || TempClientID >= MAX_CLIENTS || pServer->m_aClients[TempClientID].m_State == CClient::STATE_EMPTY)
 		{
 			pServer->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "server", "invalid client id");
 			return;
 		}
 
-		if (ClientId1 != -1 && ((CServer *)pUser)->m_aClients[ClientId1].m_Authed <= ((CServer *)pUser)->m_aClients[ClientID].m_Authed)
+		if (ClientID != -1 && ((CServer *)pUser)->m_aClients[ClientID].m_Authed <= ((CServer *)pUser)->m_aClients[TempClientID].m_Authed)
 			return;
 
-		else if(pServer->m_RconClientID == ClientID)
+		else if(pServer->m_RconClientID == TempClientID)
 		{
 			pServer->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "server", "you can't ban yourself");
 			return;
 		}
 
-		Addr = pServer->m_NetServer.ClientAddr(ClientID);
+		Addr = pServer->m_NetServer.ClientAddr(TempClientID);
 		pServer->BanAdd(Addr, Minutes*60, pReason);
 	}
 	else
@@ -1599,18 +1573,6 @@ void CServer::ConMapReload(IConsole::IResult *pResult, void *pUser, int ClientID
 	((CServer *)pUser)->m_MapReload = 1;
 }
 
-void CServer::ConCmdList(IConsole::IResult *pResult, void *pUserData, int ClientID)
-{
-	CServer *pSelf = (CServer *)pUserData;
-
-	if(pResult->NumArguments() == 0)
-		pSelf->Console()->List((pSelf->m_aClients[ClientID].m_Authed != 0) ? pSelf->m_aClients[ClientID].m_Authed : -1, CFGFLAG_SERVER);
-	else if (pResult->GetInteger(0) == 0)
-		pSelf->Console()->List(-1, CFGFLAG_SERVER);
-	else
-		pSelf->Console()->List(pResult->GetInteger(0), CFGFLAG_SERVER);
-}
-
 void CServer::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData, -1);
@@ -1623,33 +1585,6 @@ void CServer::ConchainMaxclientsperipUpdate(IConsole::IResult *pResult, void *pU
 	pfnCallback(pResult, pCallbackUserData, -1);
 	if(pResult->NumArguments())
 		((CServer *)pUserData)->m_NetServer.SetMaxClientsPerIP(pResult->GetInteger(0));
-}
-
-void CServer::ConLogin(IConsole::IResult *pResult, void *pUser, int ClientID)
-{
-	if(pResult->NumArguments())
-		((CServer *)pUser)->CheckPass(ClientID, pResult->GetString(0));
-	else
-		((CServer *)pUser)->SetRconLevel(ClientID, 0);
-}
-
-bool CServer::CompareClients(int ClientLevel, int Victim, void *pUser)
-{
-	CServer* pSelf = (CServer *)pUser;
-
-	if(!ClientOnline(Victim, pSelf))
-		return false;
-
-	return clamp(ClientLevel, 0, 4) > clamp(pSelf->m_aClients[Victim].m_Authed, 0, 4);
-}
-
-bool CServer::ClientOnline(int ClientID, void *pUser)
-{
-	CServer* pSelf = (CServer *)pUser;
-	if(ClientID < 0 || ClientID >= MAX_CLIENTS)
-		return false;
-	
-	return pSelf->m_aClients[ClientID].m_State != CClient::STATE_EMPTY;
 }
 
 void CServer::RegisterCommands()
@@ -1988,4 +1923,67 @@ void CServer::ConClearBanmasters(IConsole::IResult *pResult, void *pUser, int Cl
 	pServer->m_NetServer.BanmastersClear();
 }
 
+void CServer::SendRconResponse(const char *pLine, void *pUser)
+{
+	RconResponseInfo *pInfo = (RconResponseInfo *)pUser;
+	CServer *pThis = pInfo->m_Server;
+	static volatile int ReentryGuard = 0;
+
+	if(ReentryGuard)
+		return;
+
+	ReentryGuard++;
+
+	if(pThis->m_aClients[pInfo->m_ClientID].m_State != CClient::STATE_EMPTY)
+			pThis->SendRconLine(pInfo->m_ClientID, pLine);
+
+	ReentryGuard--;
+}
+
+void CServer::ConCmdList(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CServer *pSelf = (CServer *)pUserData;
+
+	if(pResult->NumArguments() == 0)
+		pSelf->Console()->List((pSelf->m_aClients[ClientID].m_Authed != 0) ? pSelf->m_aClients[ClientID].m_Authed : -1, CFGFLAG_SERVER);
+	else if (pResult->GetInteger(0) == 0)
+		pSelf->Console()->List(-1, CFGFLAG_SERVER);
+	else
+		pSelf->Console()->List(pResult->GetInteger(0), CFGFLAG_SERVER);
+}
+
+void CServer::ConLogin(IConsole::IResult *pResult, void *pUser, int ClientID)
+{
+	if(pResult->NumArguments())
+		((CServer *)pUser)->CheckPass(ClientID, pResult->GetString(0));
+	else
+		((CServer *)pUser)->SetRconLevel(ClientID, 0);
+}
+
+bool CServer::CompareClients(int ClientLevel, int Victim, void *pUser)
+{
+	CServer* pSelf = (CServer *)pUser;
+
+	if(!ClientOnline(Victim, pSelf))
+		return false;
+
+	return clamp(ClientLevel, 0, 4) > clamp(pSelf->m_aClients[Victim].m_Authed, 0, 4);
+}
+
+bool CServer::ClientOnline(int ClientID, void *pUser)
+{
+	CServer* pSelf = (CServer *)pUser;
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS)
+		return false;
+	
+	return pSelf->m_aClients[ClientID].m_State != CClient::STATE_EMPTY;
+}
+
+void CServer::SetClientAuthed(int ClientID, int Level) {
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CClient::STATE_READY)
+	{
+		return;
+	}
+	m_aClients[ClientID].m_Authed = Level;
+}
 

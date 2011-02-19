@@ -78,14 +78,14 @@ public:
 	void EndRound();
 	void ChangeMap(const char *pToMap);
 	
-	bool IsFriendlyFire(int Cid1, int Cid2);
+	bool IsFriendlyFire(int ClientID1, int ClientID2);
 	
 	bool IsForceBalanced();
 
 	/*
 	
 	*/	
-	virtual bool CanBeMovedOnBalance(int Cid);
+	virtual bool CanBeMovedOnBalance(int ClientID);
 
 	virtual void Tick();
 	
@@ -130,7 +130,7 @@ public:
 	//virtual void OnPlayerInfoChange(class CPlayer *pP);
 
 	//
-	virtual bool CanSpawn(class CPlayer *pP, vec2 *pPos);
+	virtual bool CanSpawn(int Team, vec2 *pPos);
 
 	/*
 	

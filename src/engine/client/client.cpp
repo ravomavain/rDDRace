@@ -1720,6 +1720,15 @@ void CClient::Update()
 				ActionTaken = Now;
 			}
 		}
+		else
+		{
+			if(Now > ActionTaken+time_freq()*(10+g_Config.m_DbgStress))
+			{
+				m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "stress", "disconnecting!");
+				Disconnect();
+				ActionTaken = Now;
+			}
+		}
 	}
 
 	// pump the network
@@ -2219,6 +2228,23 @@ void CClient::RegisterCommands()
 	m_pConsole->Register("record", "?s", CFGFLAG_SERVER, 0, 0, "Record to a file", 0);
 	m_pConsole->Register("stoprecord", "", CFGFLAG_SERVER, 0, 0, "Stop recording", 0);
 	m_pConsole->Register("reload", "", CFGFLAG_SERVER, 0, 0, "Reload the map", 0);
+
+	m_pConsole->Register("quit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", -1);
+	m_pConsole->Register("exit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", -1);
+	m_pConsole->Register("minimize", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Minimize, this, "Minimize Teeworlds", -1);
+	m_pConsole->Register("connect", "s", CFGFLAG_CLIENT, Con_Connect, this, "Connect to the specified host/ip", -1);
+	m_pConsole->Register("disconnect", "", CFGFLAG_CLIENT, Con_Disconnect, this, "Disconnect from the server", -1);
+	m_pConsole->Register("ping", "", CFGFLAG_CLIENT, Con_Ping, this, "Ping the current server", -1);
+	m_pConsole->Register("screenshot", "", CFGFLAG_CLIENT, Con_Screenshot, this, "Take a screenshot", -1);
+	m_pConsole->Register("rcon", "r", CFGFLAG_CLIENT, Con_Rcon, this, "Send specified command to rcon", -1);
+	m_pConsole->Register("rcon_auth", "s", CFGFLAG_CLIENT, Con_RconAuth, this, "Authenticate to rcon", -1);
+	m_pConsole->Register("play", "r", CFGFLAG_CLIENT, Con_Play, this, "Play the file specified", -1);
+	m_pConsole->Register("record", "?s", CFGFLAG_CLIENT, Con_Record, this, "Record to the file", -1);
+	m_pConsole->Register("stoprecord", "", CFGFLAG_CLIENT, Con_StopRecord, this, "Stop recording", -1);
+
+	m_pConsole->Register("add_favorite", "s", CFGFLAG_CLIENT, Con_AddFavorite, this, "Add a server as a favorite", -1);
+
+	// DDRace
 	m_pConsole->Register("login", "?s", CFGFLAG_SERVER, 0, 0, "Allows you access to rcon if no password is given, or changes your level if a password is given", -1);
 	m_pConsole->Register("auth", "?s", CFGFLAG_SERVER, 0, 0, "Allows you access to rcon if no password is given, or changes your level if a password is given", -1);
 	m_pConsole->Register("vote", "r", CFGFLAG_SERVER, 0, 0, "Forces the current vote to result in r (Yes/No)", 3);
@@ -2226,21 +2252,6 @@ void CClient::RegisterCommands()
 
 	#define CONSOLE_COMMAND(name, params, flags, callback, userdata, help, level) m_pConsole->Register(name, params, flags, 0, 0, help, level);
 	#include <game/ddracecommands.h>
-
-	m_pConsole->Register("quit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", 0);
-	m_pConsole->Register("exit", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", 0);
-	m_pConsole->Register("minimize", "", CFGFLAG_CLIENT|CFGFLAG_STORE, Con_Minimize, this, "Minimize Teeworlds", 0);
-	m_pConsole->Register("connect", "s", CFGFLAG_CLIENT, Con_Connect, this, "Connect to the specified host/ip", 0);
-	m_pConsole->Register("disconnect", "", CFGFLAG_CLIENT, Con_Disconnect, this, "Disconnect from the server", 0);
-	m_pConsole->Register("ping", "", CFGFLAG_CLIENT, Con_Ping, this, "Ping the current server", 0);
-	m_pConsole->Register("screenshot", "", CFGFLAG_CLIENT, Con_Screenshot, this, "Take a screenshot", 0);
-	m_pConsole->Register("rcon", "r", CFGFLAG_CLIENT, Con_Rcon, this, "Send specified command to rcon", 0);
-	m_pConsole->Register("rcon_auth", "s", CFGFLAG_CLIENT, Con_RconAuth, this, "Authenticate to rcon", 0);
-	m_pConsole->Register("play", "r", CFGFLAG_CLIENT, Con_Play, this, "Play the file specified", 0);
-	m_pConsole->Register("record", "?s", CFGFLAG_CLIENT, Con_Record, this, "Record to the file", 0);
-	m_pConsole->Register("stoprecord", "", CFGFLAG_CLIENT, Con_StopRecord, this, "Stop recording", 0);
-
-	m_pConsole->Register("add_favorite", "s", CFGFLAG_CLIENT, Con_AddFavorite, this, "Add a server as a favorite", 0);
 }
 
 static CClient m_Client;

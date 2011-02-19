@@ -60,8 +60,6 @@ bool CNetServer::Open(NETADDR BindAddr, int MaxClients, int MaxClientsPerIP, int
 	m_BanPool[NET_SERVER_MAXBANS-1].m_pPrev = &m_BanPool[NET_SERVER_MAXBANS-2];
 	m_BanPool_FirstFree = &m_BanPool[0];
 
-	m_Flags = Flags;
-
 	return true;
 }
 
@@ -176,6 +174,7 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 	// setup the ban info
 	pBan->m_Info.m_Expires = Stamp;
 	pBan->m_Info.m_Addr = Addr;
+	str_copy(pBan->m_Info.m_Reason, pReason, sizeof(pBan->m_Info.m_Reason));
 	
 	// add it to the ban hash
 	MACRO_LIST_LINK_FIRST(pBan, m_aBans[IpHash], m_pHashPrev, m_pHashNext);
@@ -217,8 +216,14 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 		char Buf[128];
 		NETADDR BanAddr;
 		
-		if(Seconds)
-			str_format(Buf, sizeof(Buf), "You have been banned for %d minutes (%s)", Seconds/60, pReason);
+		int Mins = (Seconds + 59) / 60;
+		if(Mins)
+		{
+			if(Mins == 1)
+				str_format(Buf, sizeof(Buf), "You have been banned for 1 minute (%s)", pReason);
+			else
+				str_format(Buf, sizeof(Buf), "You have been banned for %d minutes (%s)", Mins, pReason);
+		}
 		else
 			str_format(Buf, sizeof(Buf), "You have been banned for life (%s)", pReason);
 		
@@ -300,12 +305,12 @@ int CNetServer::Recv(CNetChunk *pChunk)
 				{
 					int Mins = ((pBan->m_Info.m_Expires - Now)+59)/60;
 					if(Mins == 1)
-						str_format(BanStr, sizeof(BanStr), "Banned for 1 minute");
+						str_format(BanStr, sizeof(BanStr), "Banned for 1 minute (%s)", pBan->m_Info.m_Reason);
 					else
-						str_format(BanStr, sizeof(BanStr), "Banned for %d minutes", Mins);
+						str_format(BanStr, sizeof(BanStr), "Banned for %d minutes (%s)", Mins, pBan->m_Info.m_Reason);
 				}
 				else
-					str_format(BanStr, sizeof(BanStr), "Banned for life");
+					str_format(BanStr, sizeof(BanStr), "Banned for life (%s)", pBan->m_Info.m_Reason);
 				CNetBase::SendControlMsg(m_Socket, &Addr, 0, NET_CTRLMSG_CLOSE, BanStr, str_length(BanStr)+1);
 				continue;
 			}
@@ -391,7 +396,6 @@ int CNetServer::Recv(CNetChunk *pChunk)
 								m_aSlots[i].m_Connection.Feed(&m_RecvUnpacker.m_Data, &Addr);
 								if(m_pfnNewClient)
 									m_pfnNewClient(i, m_UserPtr);
-								
 								break;
 							}
 						}

@@ -180,13 +180,15 @@ class CMenus : public CComponent
 														m_IsDir && !Other.m_IsDir ? true : !m_IsDir && Other.m_IsDir ? false :
 														str_comp_filenames(m_aFilename, Other.m_aFilename) < 0; }
 	};
-	
+
+	//sorted_array<CDemoItem> m_lDemos;
 	char m_aCurrentDemoFolder[256];
 	int m_DemolistSelectedIndex;
 	bool m_DemolistSelectedIsDir;
 	int m_DemolistStorageType;
 	
 	void DemolistOnUpdate(bool Reset);
+	//void DemolistPopulate();
 	static void DemolistFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser);
 	
 	static void GhostlistFetchCallback(const char *pName, int IsDir, int StorageType, void *pUser);
@@ -226,6 +228,7 @@ class CMenus : public CComponent
 	void RenderSettingsControls(CUIRect MainView);
 	void RenderSettingsGraphics(CUIRect MainView);
 	void RenderSettingsSound(CUIRect MainView);
+	void RenderSettingsDDRace(CUIRect MainView);
 	void RenderSettings(CUIRect MainView);
 	
 	void SetActive(bool Active);

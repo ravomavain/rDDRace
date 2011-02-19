@@ -72,8 +72,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_Pos = Pos;
 	
 	m_Core.Reset();
-
 	m_Core.Init(&GameServer()->m_World.m_Core, GameServer()->Collision(), &((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.m_Core);
+
 	m_Core.m_Pos = m_Pos;
 	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = &m_Core;
 
@@ -93,7 +93,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 
 void CCharacter::Destroy()
 {
-	//GameServer()->m_World.m_Core.m_apCharacters[m_MarkedId] = 0; This caused the Marked Char for delete to always Delete ID 0 Core
+	//GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	//dbg_msg("CCHaracter::Destroy", "ID %d Player %d m_Core %d", GetPlayer()->GetCID() ,GetPlayer() ,&m_Core);
 	m_Alive = false;
 	CEntity::Destroy();
@@ -223,7 +223,7 @@ void CCharacter::HandleWeaponSwitch()
 	if(m_QueuedWeapon != -1)
 		WantedWeapon = m_QueuedWeapon;
 	
-	bool Anything;
+	bool Anything = false;
 	 for(int i = 0; i < NUM_WEAPONS - 1; ++i)
 		 if(m_aWeapons[i].m_Got)
 			 Anything = true;
@@ -757,15 +757,15 @@ void CCharacter::Die(int Killer, int Weapon)
 	m_pPlayer->m_DieTick = Server()->Tick();
 
 	m_Alive = false;
-	MarkDestroy();
 	//GameServer()->m_World.RemoveEntity(this);
+	MarkDestroy();
 	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
 	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID(), Teams()->TeamMask(Team()));
 
 	// we got to wait 0.5 secs before respawning
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 
-	((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.SetForceCharacterTeam(m_pPlayer->GetCID(), 0);
+	Teams()->OnCharacterDeath(m_pPlayer->GetCID());
 }
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
@@ -943,14 +943,13 @@ void CCharacter::Snap(int SnappingClient)
 
 	pCharacter->m_PlayerState = m_PlayerState;
 }
-
-bool CCharacter::CanCollide(int Cid)
+bool CCharacter::CanCollide(int ClientID)
 {
-	return Teams()->m_Core.CanCollide(GetPlayer()->GetCID(), Cid);
+	return Teams()->m_Core.CanCollide(GetPlayer()->GetCID(), ClientID);
 }
-bool CCharacter::SameTeam(int Cid)
+bool CCharacter::SameTeam(int ClientID)
 {
-	return Teams()->m_Core.SameTeam(GetPlayer()->GetCID(), Cid);
+	return Teams()->m_Core.SameTeam(GetPlayer()->GetCID(), ClientID);
 }
 
 void CCharacter::OnFinish()
@@ -988,15 +987,20 @@ void CCharacter::OnFinish()
 				GameServer()->SendChatTarget(m_pPlayer->GetCID(), aBuf);//this is private, sent only to the tee
 			}
 		}
-
+		
 		if(!pData->m_BestTime || time < pData->m_BestTime)
 		{
 			// update the score
 			pData->Set(time, m_CpCurrent);
-
-			if(str_comp_num(Server()->ClientName(m_pPlayer->GetCID()), "nameless tee", 12) != 0)
-				GameServer()->Score()->SaveScore(m_pPlayer->GetCID(), time, this);
 		}
+		bool useSQL = false;
+		#if defined(CONF_SQL)
+			useSQL = g_Config.m_SvUseSQL;
+		#endif
+		if(!pData->m_BestTime || time < pData->m_BestTime || useSQL)
+			if(str_comp_num(Server()->ClientName(m_pPlayer->GetCID()), "nameless tee", 12) != 0)
+				GameServer()->Score()->SaveScore(m_pPlayer->GetCID(), time, this);		
+
 		bool NeedToSendNewRecord = false;
 		// update server best time
 		if(GameServer()->m_pController->m_CurrentRecord == 0 || time < GameServer()->m_pController->m_CurrentRecord)
@@ -1006,7 +1010,6 @@ void CCharacter::OnFinish()
 				GameServer()->m_pController->m_CurrentRecord = time;
 				//dbg_msg("character", "Finish");
 				NeedToSendNewRecord = true;
-				
 			}
 				
 		}
@@ -1025,7 +1028,7 @@ void CCharacter::OnFinish()
 					{
 						CNetMsg_Sv_PlayerTime Msg;
 						Msg.m_Time = time * 100.0;
-						Msg.m_Cid = m_pPlayer->GetCID();
+						Msg.m_ClientID = m_pPlayer->GetCID();
 						Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, i);
 					}
 				}
@@ -1342,7 +1345,16 @@ void CCharacter::HandleTiles(int Index)
 	if(((m_TileIndex == TILE_BEGIN) || (m_TileFIndex == TILE_BEGIN) || FTile1 == TILE_BEGIN || FTile2 == TILE_BEGIN || FTile3 == TILE_BEGIN || FTile4 == TILE_BEGIN || Tile1 == TILE_BEGIN || Tile2 == TILE_BEGIN || Tile3 == TILE_BEGIN || Tile4 == TILE_BEGIN) && (m_DDRaceState == DDRACE_NONE || m_DDRaceState == DDRACE_FINISHED || (m_DDRaceState == DDRACE_STARTED && !Team())))
 	{
 		bool CanBegin = true;
-		if(g_Config.m_SvTeam == 1 && (Team() == TEAM_FLOCK || Teams()->Count(Team()) <= 1))
+		if(g_Config.m_SvResetPickus)
+		{
+			for (int i = WEAPON_SHOTGUN; i < NUM_WEAPONS; ++i)
+			{
+				m_aWeapons[i].m_Got = false;
+				if(m_ActiveWeapon == i)
+					m_ActiveWeapon = WEAPON_GUN;
+			}
+		}
+		if(g_Config.m_SvTeam == 2 && (Team() == TEAM_FLOCK || Teams()->Count(Team()) <= 1))
 		{
 			if(m_LastStartWarning < Server()->Tick() - 3 * Server()->TickSpeed())
 			{
@@ -1353,7 +1365,7 @@ void CCharacter::HandleTiles(int Index)
 		}
 		if(CanBegin)
 		{
-			Controller->m_Teams.OnCharacterStart(m_pPlayer->GetCID());
+			Teams()->OnCharacterStart(m_pPlayer->GetCID());
 			m_CpActive = -2;
 		} else {
 			
@@ -1609,7 +1621,7 @@ void CCharacter::DDRaceInit()
 	m_Core.m_Id = GetPlayer()->GetCID();
 	if(m_pPlayer->m_RconFreeze) Freeze(-1);
 	if(GetPlayer()->m_IsUsingDDRaceClient) ((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.SendTeamsState(GetPlayer()->GetCID());
-	if(g_Config.m_SvTeam == 1)
+	if(g_Config.m_SvTeam == 2)
 	{
 		GameServer()->SendChatTarget(GetPlayer()->GetCID(),"Please join a team before you start");
 		m_LastStartWarning = Server()->Tick();

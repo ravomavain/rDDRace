@@ -73,6 +73,11 @@ void IGameController::EvaluateSpawnType(CSpawnEval *pEval, int T)
 	// get spawn point
 	for(int i  = 0; i < m_aNumSpawnPoints[T]; i++)
 	{
+/*
+		// check if the position is occupado
+		if(GameServer()->m_World.FindEntities(m_aaSpawnPoints[T][i], 64, 0, 1, CGameWorld::ENTTYPE_CHARACTER))
+			continue;
+*/
 		vec2 P = m_aaSpawnPoints[T][i];
 		float S = EvaluateSpawnPos(pEval, P);
 		if(!pEval->m_Got || pEval->m_Score > S)
@@ -84,25 +89,25 @@ void IGameController::EvaluateSpawnType(CSpawnEval *pEval, int T)
 	}
 }
 
-bool IGameController::CanSpawn(CPlayer *pPlayer, vec2 *pOutPos)
+bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 {
 	CSpawnEval Eval;
 	
 	// spectators can't spawn
-	if(pPlayer->GetTeam() == TEAM_SPECTATORS)
+	if(Team  == TEAM_SPECTATORS)
 		return false;
 	
 	/*if(IsTeamplay())
 	{
-		Eval.m_FriendlyTeam = pPlayer->GetTeam();
+		Eval.m_FriendlyTeam = Team;
 		
-		// try first try own team spawn, then normal spawn and then enemy
-		EvaluateSpawnType(&Eval, 1+(pPlayer->GetTeam()&1));
+		// first try own team spawn, then normal spawn and then enemy
+		EvaluateSpawnType(&Eval, 1+(Team&1));
 		if(!Eval.m_Got)
 		{
 			EvaluateSpawnType(&Eval, 0);
 			if(!Eval.m_Got)
-				EvaluateSpawnType(&Eval, 1+((pPlayer->GetTeam()+1)&1));
+				EvaluateSpawnType(&Eval, 1+((Team+1)&1));
 		}
 	}
 	else
@@ -537,17 +542,17 @@ void IGameController::DoWarmup(int Seconds)
 		m_Warmup = Seconds*Server()->TickSpeed();
 }
 /*
-bool IGameController::IsFriendlyFire(int Cid1, int Cid2)
+bool IGameController::IsFriendlyFire(int ClientID1, int ClientID2)
 {
-	if(Cid1 == Cid2)
+	if(ClientID1 == ClientID2)
 		return false;
 	
 	if(IsTeamplay())
 	{
-		if(!GameServer()->m_apPlayers[Cid1] || !GameServer()->m_apPlayers[Cid2])
+		if(!GameServer()->m_apPlayers[ClientID1] || !GameServer()->m_apPlayers[ClientID2])
 			return false;
 			
-		if(GameServer()->m_apPlayers[Cid1]->GetTeam() == GameServer()->m_apPlayers[Cid2]->GetTeam())
+		if(GameServer()->m_apPlayers[ClientID1]->GetTeam() == GameServer()->m_apPlayers[ClientID2]->GetTeam())
 			return true;
 	}
 	
@@ -565,7 +570,7 @@ bool IGameController::IsForceBalanced()
 		return false;
 }
 
-bool IGameController::CanBeMovedOnBalance(int Cid)
+bool IGameController::CanBeMovedOnBalance(int ClientID)
 {
 	return true;
 }
