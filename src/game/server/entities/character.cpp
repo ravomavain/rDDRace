@@ -1471,6 +1471,7 @@ void CCharacter::HandleTiles(int Index)
 		int Num = (((CGameControllerDDRace*)GameServer()->m_pController)->m_TeleOuts[z-1].size());
 		m_Core.m_Pos = ((CGameControllerDDRace*)GameServer()->m_pController)->m_TeleOuts[z-1][(!Num)?Num:rand() % Num];
 		m_Core.m_HookPos = m_Core.m_Pos;
+		m_SavedPos=m_Core.m_Pos;
 		return;
 	}
 	int evilz = GameServer()->Collision()->IsEvilTeleport(MapIndex);
@@ -1485,6 +1486,7 @@ void CCharacter::HandleTiles(int Index)
 		m_Core.m_Pos = ((CGameControllerDDRace*)GameServer()->m_pController)->m_TeleOuts[evilz-1][(!Num)?Num:rand() % Num];
 		m_Core.m_HookPos = m_Core.m_Pos;
 		m_Core.m_Vel = vec2(0,0);
+		m_SavedPos=m_Core.m_Pos;
 		return;
 	}
 }
