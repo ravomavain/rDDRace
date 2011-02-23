@@ -202,6 +202,7 @@ private:
 	void MoveCharacter(int ClientID, int Victim, int X, int Y, bool Raw = false);
 
 	static void ConTeleport(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConPhook(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	static void ConFreeze(IConsole::IResult *pResult, void *pUserData, int ClientID);

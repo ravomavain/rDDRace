@@ -315,6 +315,25 @@ void CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData, int 
 	}
 }
 
+void CGameContext::ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
+	int Victim = pResult->GetVictim();
+	int TeleNum = pResult->GetInteger(0)-1;
+	int Num = Controller->m_TeleOuts[TeleNum].size();
+	if(Num)
+	{
+		CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+		if(pChr)
+		{
+			pChr->Core()->m_Pos = Controller->m_TeleOuts[TeleNum][(!Num)?Num:rand() % Num];
+			if(!g_Config.m_SvCheatTime)
+				pChr->m_DDRaceState = DDRACE_CHEAT;
+		}
+	}
+}
+
 void CGameContext::ConTimerStop(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;

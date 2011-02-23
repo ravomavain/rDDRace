@@ -19,6 +19,7 @@ CONSOLE_COMMAND("timerstart", "v", CFGFLAG_SERVER|CMDFLAG_TIMER, ConTimerStart, 
 CONSOLE_COMMAND("timerrestart", "v", CFGFLAG_SERVER|CMDFLAG_TIMER, ConTimerReStart, this, "Sets the timer of player v to 0 and starts it", 2)
 CONSOLE_COMMAND("timerzero", "v", CFGFLAG_SERVER|CMDFLAG_TIMER, ConTimerZero, this, "Sets the timer of player v to 0 and stops it", 2)
 CONSOLE_COMMAND("tele", "vi", CFGFLAG_SERVER|CMDFLAG_CHEAT|CMDFLAG_HELPERCMD, ConTeleport, this, "Teleports player v to player i", 2)
+CONSOLE_COMMAND("teleto", "vi", CFGFLAG_SERVER|CMDFLAG_CHEAT|CMDFLAG_HELPERCMD, ConTeleportTo, this, "Teleports player v to teleporter i", 2)
 CONSOLE_COMMAND("freeze", "v?i", CFGFLAG_SERVER|CMDFLAG_CHEAT|CMDFLAG_HELPERCMD, ConFreeze, this, "Freezes player v for i seconds (infinite by default)", 2)
 CONSOLE_COMMAND("unfreeze", "v", CFGFLAG_SERVER|CMDFLAG_CHEAT|CMDFLAG_HELPERCMD, ConUnFreeze, this, "Unfreezes player v", 2)
 CONSOLE_COMMAND("addweapon", "v?i", CFGFLAG_SERVER|CMDFLAG_CHEAT|CMDFLAG_HELPERCMD, ConAddWeapon, this, "Gives weapon with id i to player v (all = -1, hammer = 0, gun = 1, shotgun = 2, grenade = 3, rifle = 4, ninja = 5)", 1)
