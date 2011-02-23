@@ -247,7 +247,8 @@ function build(settings)
 	game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
 
 	-- build tools (TODO: fix this so we don't get double _d_d stuff)
-	tools_src = Collect("src/tools/*.cpp", "src/tools/*.c")
+	tools_src_c = Collect("src/tools/*.c")
+	tools_src_cpp = Collect("src/tools/*.cpp")
 
 	client_osxlaunch = {}
 	server_osxlaunch = {}
@@ -256,10 +257,15 @@ function build(settings)
 		server_osxlaunch = Compile(launcher_settings, "src/osxlaunch/server.m")
 	end
 	
-	tools = {}
-	for i,v in ipairs(tools_src) do
+	tools_c = {}
+	for i,v in ipairs(tools_src_c) do
 		toolname = PathFilename(PathBase(v))
-		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib)
+		tools_c[i] = Link(settings, toolname, Compile(settings, v), engine, zlib)
+	end
+	tools_cpp = {}
+	for i,v in ipairs(tools_src_cpp) do
+		toolname = PathFilename(PathBase(v))
+		tools_cpp[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
 	end
 	
 	-- build client, server, version server and master server
@@ -304,7 +310,7 @@ function build(settings)
 	v = PseudoTarget("versionserver".."_"..settings.config_name, versionserver_exe)
 	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
 	b = PseudoTarget("banmaster".."_"..settings.config_name, banmaster_exe)
-	t = PseudoTarget("tools".."_"..settings.config_name, tools)
+	t = PseudoTarget("tools".."_"..settings.config_name, tools_c, tools_cpp)
 
 	all = PseudoTarget(settings.config_name, c, s, v, m, b, t)
 	return all
