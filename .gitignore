@@ -8,8 +8,6 @@ src/game/generated
 SDL.dll
 autoexec.cfg
 
-banmaster
-banmaster_*
 crapnet*
 dilate*
 fake_server*
