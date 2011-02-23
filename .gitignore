@@ -50,4 +50,5 @@ DDRace-Server*
 *.cmd
 .settings
 *.opensdf
+banmaster*
 
