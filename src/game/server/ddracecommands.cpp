@@ -51,6 +51,12 @@ void CGameContext::MoveCharacter(int ClientID, int Victim, int X, int Y, bool Ra
 
 	if(!pChr)
 		return;
+		
+	if(pChr->IsJailed())
+	{
+		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Players can't be moved out of jail");
+		return;
+	}
 
 	pChr->Core()->m_Pos.x += ((Raw) ? 1 : 32) * X;
 	pChr->Core()->m_Pos.y += ((Raw) ? 1 : 32) * Y;
@@ -312,6 +318,11 @@ void CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData, int 
 			CCharacter* pChr = pSelf->GetPlayerChar(Victim);
 			if(pChr)
 			{
+				if(pChr->IsJailed())
+				{
+					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Players can't be teleported out of jail");
+					return;
+				}
 				pChr->Core()->m_Pos = pSelf->m_apPlayers[TeleTo]->m_ViewPos;
 				if(!g_Config.m_SvCheatTime)
 					pChr->m_DDRaceState = DDRACE_CHEAT;
@@ -332,6 +343,11 @@ void CGameContext::ConTeleportTo(IConsole::IResult *pResult, void *pUserData, in
 		CCharacter* pChr = pSelf->GetPlayerChar(Victim);
 		if(pChr)
 		{
+			if(pChr->IsJailed())
+			{
+				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Players can't be teleported out of jail");
+				return;
+			}
 			pChr->Core()->m_Pos = Controller->m_TeleOuts[TeleNum][(!Num)?Num:rand() % Num];
 			if(!g_Config.m_SvCheatTime)
 				pChr->m_DDRaceState = DDRACE_CHEAT;
