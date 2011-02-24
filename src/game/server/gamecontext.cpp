@@ -1120,7 +1120,7 @@ void CGameContext::OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientID)
 		if(p->m_Last_Kill && p->m_Last_Kill+Server()->TickSpeed() * g_Config.m_SvKillDelay > Server()->Tick())
 			return;
 		
-		if(p->GetCharacter()->IsJailed())
+		if(p->GetCharacter() && p->GetCharacter()->IsJailed())
 		{
 			SendChatTarget(ClientID,"You can't kill yourself in jail");
 			return;

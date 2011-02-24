@@ -115,7 +115,7 @@ void CGameContext::ConKillPlayer(IConsole::IResult *pResult, void *pUserData, in
 
 	if(pSelf->m_apPlayers[Victim])
 	{
-		if(pSelf->m_apPlayers[Victim]->GetCharacter()->IsJailed())
+		if(pSelf->m_apPlayers[Victim]->GetCharacter() && pSelf->m_apPlayers[Victim]->GetCharacter()->IsJailed())
 		{
 			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Player is in jail");
 			return;
@@ -767,7 +767,7 @@ void CGameContext::ConKill(IConsole::IResult *pResult, void *pUserData, int Clie
 	if(!pPlayer || (pPlayer->m_Last_Kill && pPlayer->m_Last_Kill + pSelf->Server()->TickSpeed() * g_Config.m_SvKillDelay > pSelf->Server()->Tick()))
 		return;
 		
-	if(pPlayer->GetCharacter()->IsJailed())
+	if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsJailed())
 	{
 		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can't kill yourself in jail");
 		return;
