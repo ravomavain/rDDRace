@@ -210,6 +210,11 @@ void CPlayer::Respawn()
 
 void CPlayer::SetTeam(int Team)
 {
+	if(Character->IsJailed())
+	{
+		GameServer()->SendChatTarget(m_ClientID,"You can't change of team in jail");
+		return;
+	}
 	// clamp the team
 	Team = GameServer()->m_pController->ClampTeam(Team);
 	if(m_Team == Team)
@@ -274,11 +279,13 @@ void CPlayer::LoadCharacter()
 		}
 	}
 	Character->m_FreezeTime = m_PauseInfo.m_FreezeTime;
+	Character->m_JailTime = m_PauseInfo.m_JailTime;
 	Character->SetLastAction(Server()->Tick());
 	Character->SetArmor(m_PauseInfo.m_Armor);
 	Character->m_LastMove = m_PauseInfo.m_LastMove;
 	Character->m_PrevPos = m_PauseInfo.m_PrevPos;
 	Character->m_SavedPos = m_PauseInfo.m_SavedPos;
+	Character->m_JailPos = m_PauseInfo.m_JailPos;
 	Character->SetActiveWeapon(m_PauseInfo.m_ActiveWeapon);
 	Character->SetLastWeapon(m_PauseInfo.m_LastWeapon);
 	Character->m_HammerType = m_PauseInfo.m_HammerType;
@@ -301,10 +308,12 @@ void CPlayer::SaveCharacter()
 		m_PauseInfo.m_aHasWeapon[i] = Character->GetWeaponGot(i);
 	}
 	m_PauseInfo.m_FreezeTime=Character->m_FreezeTime;
+	m_PauseInfo.m_JailTime=Character->m_JailTime;
 	m_PauseInfo.m_Armor = Character->GetArmor();
 	m_PauseInfo.m_LastMove = Character->m_LastMove;
 	m_PauseInfo.m_PrevPos = Character->m_PrevPos;
 	m_PauseInfo.m_SavedPos = Character->m_SavedPos;
+	m_PauseInfo.m_JailPos = Character->m_JailPos;
 	m_PauseInfo.m_ActiveWeapon = Character->GetActiveWeapon();
 	m_PauseInfo.m_LastWeapon = Character->GetLastWeapon();
 	m_PauseInfo.m_HammerType = Character->m_HammerType;

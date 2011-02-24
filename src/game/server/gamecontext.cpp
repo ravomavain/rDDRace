@@ -1111,6 +1111,12 @@ void CGameContext::OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientID)
 		if(p->m_Last_Kill && p->m_Last_Kill+Server()->TickSpeed() * g_Config.m_SvKillDelay > Server()->Tick())
 			return;
 		
+		if(p->GetCharacter()->IsJailed())
+		{
+			SendChatTarget(ClientID,"You can't kill yourself in jail");
+			return;
+		}
+		
 		p->m_Last_Kill = Server()->Tick();
 		p->KillCharacter(WEAPON_SELF);
 		p->m_RespawnTick = Server()->Tick()+Server()->TickSpeed() * g_Config.m_SvSuicidePenalty;

@@ -205,6 +205,8 @@ private:
 	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConPhook(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
+	static void ConJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConUnJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConFreeze(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConUnFreeze(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConTimerStop(IConsole::IResult *pResult, void *pUserData, int ClientID);

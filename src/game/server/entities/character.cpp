@@ -122,6 +122,13 @@ bool CCharacter::IsGrounded()
 	return false;
 }
 
+bool CCharacter::IsJailed()
+{
+	if(m_JailTime == 0)
+		return false;
+	return true;
+}
+
 
 void CCharacter::HandleNinja()
 {
@@ -1155,7 +1162,7 @@ void CCharacter::HandleSkippableTiles(int Index)
 			GameServer()->Collision()->GetFCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
 			GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
 			GameLayerClipped(m_Pos)) &&
-			!m_Super)
+			!m_Super && m_JailTime!=0)
 		{
 			Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 			return;
@@ -1516,6 +1523,16 @@ void CCharacter::DDRaceTick()
 		{
 			UnFreeze();
 			m_pPlayer->m_RconFreeze = false;
+		}
+	}
+	
+	if(m_JailTime > 0)
+	{
+		m_JailTime--;
+		if (m_JailTime == 1)
+		{
+			m_Core.m_Pos = m_JailPos;
+			m_JailTime = 0;
 		}
 	}
 		

@@ -115,6 +115,11 @@ void CGameContext::ConKillPlayer(IConsole::IResult *pResult, void *pUserData, in
 
 	if(pSelf->m_apPlayers[Victim])
 	{
+		if(pSelf->m_apPlayers[Victim]->GetCharacter()->IsJailed())
+		{
+			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Player is in jail");
+			return;
+		}
 		pSelf->m_apPlayers[Victim]->KillCharacter(WEAPON_GAME);
 		char aBuf[512];
 		str_format(aBuf, sizeof(aBuf), "%s was killed by %s", pSelf->Server()->ClientName(Victim), pSelf->Server()->ClientName(ClientID));
@@ -408,6 +413,56 @@ void CGameContext::ConTimerReStart(IConsole::IResult *pResult, void *pUserData, 
 		pChr->m_DDRaceState=DDRACE_STARTED;
 		str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d time has been reset & stopped.", pServ->ClientName(ClientID), Victim);
 		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
+	}
+}
+
+void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
+	CServer* pServ = (CServer*)pSelf->Server();
+	char aBuf[128];
+	int Num = Controller->m_TeleJails.size();
+	int Seconds = -1;
+	int Victim = pResult->GetVictim();
+	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+	
+	if(Num && pChr)
+	{
+		if(pResult->NumArguments())
+			Seconds = clamp(pResult->GetInteger(0), -1, 9999);
+
+		if(pSelf->m_apPlayers[Victim])
+		{
+			pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();;
+			pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
+			pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
+			
+			if(Seconds >= 0)
+				str_format(aBuf, sizeof(aBuf), "You have been put in jail for %ds by '%s'", Seconds, pServ->ClientName(ClientID));
+			else
+				str_format(aBuf, sizeof(aBuf), "You have been put in jail by '%s'", pServ->ClientName(ClientID));
+			pSelf->SendChatTarget(Victim, aBuf);
+		}
+	}
+}
+
+void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CServer* pServ = (CServer*)pSelf->Server();
+	char aBuf[128];
+	int Victim = pResult->GetVictim();
+	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+	if(pChr && pSelf->m_apPlayers[Victim])
+	{
+		if(pChr->m_JailTime > 0 || pChr->m_JailTime == -1)
+		{
+				pChr->Core()->m_Pos = pChr->m_JailPos;
+				pChr->m_JailTime = 0;
+				str_format(aBuf, sizeof(aBuf), "You have been put out of jail by '%s'", pServ->ClientName(ClientID));
+				pSelf->SendChatTarget(Victim, aBuf);
+		}
 	}
 }
 
@@ -711,6 +766,12 @@ void CGameContext::ConKill(IConsole::IResult *pResult, void *pUserData, int Clie
 
 	if(!pPlayer || (pPlayer->m_Last_Kill && pPlayer->m_Last_Kill + pSelf->Server()->TickSpeed() * g_Config.m_SvKillDelay > pSelf->Server()->Tick()))
 		return;
+		
+	if(pPlayer->GetCharacter()->IsJailed())
+	{
+		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can't kill yourself in jail");
+		return;
+	}
 
 	pPlayer->m_Last_Kill = pSelf->Server()->Tick();
 	pPlayer->KillCharacter(WEAPON_SELF);
