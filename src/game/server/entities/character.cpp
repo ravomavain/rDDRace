@@ -1532,6 +1532,8 @@ void CCharacter::DDRaceTick()
 		if (m_JailTime == 1)
 		{
 			m_Core.m_Pos = m_JailPos;
+			if(g_Config.m_SvRescue)
+					m_SavedPos = m_JailPos;
 			m_JailTime = 0;
 		}
 	}

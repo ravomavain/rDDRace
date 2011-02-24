@@ -475,6 +475,8 @@ void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int Cl
 		if(pChr->m_JailTime > 0 || pChr->m_JailTime == -1)
 		{
 				pChr->Core()->m_Pos = pChr->m_JailPos;
+				if(g_Config.m_SvRescue)
+					pChr->m_SavedPos = pChr->m_JailPos;
 				pChr->m_JailTime = 0;
 				str_format(aBuf, sizeof(aBuf), "You have been put out of jail by '%s'", pServ->ClientName(ClientID));
 				pSelf->SendChatTarget(Victim, aBuf);
