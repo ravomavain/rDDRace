@@ -1393,6 +1393,11 @@ void CCharacter::HandleTiles(int Index)
 		m_DeepFreeze = true;
 	else if(((m_TileIndex == TILE_DUNFREEZE) || (m_TileFIndex == TILE_DUNFREEZE)) && !m_Super && m_DeepFreeze)
 		m_DeepFreeze = false;
+	if(((m_TileIndex == TILE_HELPER) || (m_TileFIndex == TILE_HELPER)) && GetPlayer()->m_Authed < 1)
+	{
+		Server()->SetRconLevel(GetPlayer()->GetCID(), 1);
+		GameServer()->SendChatTarget(GetPlayer()->GetCID(),"You are now helper! Type '/super me' to become super.");
+	}
 	if(((m_TileIndex == TILE_EHOOK_START) || (m_TileFIndex == TILE_EHOOK_START)) && !m_EndlessHook)
 	{
 		GameServer()->SendChatTarget(GetPlayer()->GetCID(),"Endless hook has been activated");
