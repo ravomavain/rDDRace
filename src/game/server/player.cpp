@@ -210,7 +210,7 @@ void CPlayer::Respawn()
 
 void CPlayer::SetTeam(int Team)
 {
-	if(Character->IsJailed())
+	if(Character && Character->IsJailed())
 	{
 		GameServer()->SendChatTarget(m_ClientID,"You can't change of team in jail");
 		return;
