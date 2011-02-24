@@ -1405,6 +1405,7 @@ void CGameContext::Mute(NETADDR *Addr, int Secs, const char *pDisplayName)
 		{
 			m_aMutes[m_NumMutes].m_Addr = *Addr;
 			m_aMutes[m_NumMutes].m_Expire = Server()->Tick() + Secs * Server()->TickSpeed();
+			m_NumMutes++;
 			Found = 1;
 		}
 	}
