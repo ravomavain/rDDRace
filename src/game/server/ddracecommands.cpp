@@ -457,19 +457,20 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				if(Seconds > 0)
 				{
 					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
-					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail. His jail time have been set to %ds.", pServ->ClientName(ClientID), Victim, Seconds);
 					pChr->m_JailTime = Seconds * pServ->TickSpeed();
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else if(pChr->m_JailTime != -1)
 				{
 					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
-					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail. He is now in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
 					pChr->m_JailTime = -1;
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else
-					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+				{
+					str_format(bBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
+				}
 			}
 			else
 			{
@@ -480,16 +481,14 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				if(Seconds >= 0)
 				{
 					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
-					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d has been put in jail for %ds.", pServ->ClientName(ClientID), Victim, Seconds);
+					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
-					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d has been put in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
-				pSelf->SendChat(-1, CHAT_ALL, aBuf);
 			}
-			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", bBuf);
 		}
 	}
 }
@@ -503,7 +502,7 @@ void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int Cl
 	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
 	if(pChr && pSelf->m_apPlayers[Victim])
 	{
-		if(pChr->IsJailed() && pSelf->m_apPlayers[Victim]->m_Authed >= pChr->m_JailLvl)
+		if(pChr->IsJailed() && pSelf->m_apPlayers[ClientID]->m_Authed >= pChr->m_JailLvl)
 		{
 				pChr->Core()->m_Pos = pChr->m_JailPos;
 				if(g_Config.m_SvRescue)
