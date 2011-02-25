@@ -323,7 +323,14 @@ void CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData, int 
 					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Players can't be teleported out of jail");
 					return;
 				}
+				pChr->Core()->m_HookedPlayer = -1;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->GameWorld()->ReleaseHooked(ClientID);
 				pChr->Core()->m_Pos = pSelf->m_apPlayers[TeleTo]->m_ViewPos;
+				pChr->Core()->m_HookPos = pChr->Core()->m_Pos;
+				pChr->Core()->m_Vel = vec2(0,0);
 				if(!g_Config.m_SvCheatTime)
 					pChr->m_DDRaceState = DDRACE_CHEAT;
 			}
@@ -348,7 +355,14 @@ void CGameContext::ConTeleportTo(IConsole::IResult *pResult, void *pUserData, in
 				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Players can't be teleported out of jail");
 				return;
 			}
+			pChr->Core()->m_HookedPlayer = -1;
+			pChr->Core()->m_HookState = HOOK_RETRACTED;
+			pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+			pChr->Core()->m_HookState = HOOK_RETRACTED;
+			pChr->GameWorld()->ReleaseHooked(ClientID);
 			pChr->Core()->m_Pos = Controller->m_TeleOuts[TeleNum][(!Num)?Num:rand() % Num];
+			pChr->Core()->m_HookPos = pChr->Core()->m_Pos;
+			pChr->Core()->m_Vel = vec2(0,0);
 			if(!g_Config.m_SvCheatTime)
 				pChr->m_DDRaceState = DDRACE_CHEAT;
 		}
@@ -477,7 +491,14 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();
 				pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
 				pChr->m_JailLvl = (ClientID==Victim)?-1:pSelf->m_apPlayers[ClientID]->m_Authed;
+				pChr->Core()->m_HookedPlayer = -1;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->GameWorld()->ReleaseHooked(ClientID);
 				pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
+				pChr->Core()->m_HookPos = pChr->Core()->m_Pos;
+				pChr->Core()->m_Vel = vec2(0,0);
 				if(Seconds >= 0)
 				{
 					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
@@ -504,7 +525,14 @@ void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int Cl
 	{
 		if(pChr->IsJailed() && pSelf->m_apPlayers[ClientID]->m_Authed >= pChr->m_JailLvl)
 		{
+				pChr->Core()->m_HookedPlayer = -1;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->GameWorld()->ReleaseHooked(ClientID);
 				pChr->Core()->m_Pos = pChr->m_JailPos;
+				pChr->Core()->m_HookPos = pChr->Core()->m_Pos;
+				pChr->Core()->m_Vel = vec2(0,0);
 				if(g_Config.m_SvRescue)
 					pChr->m_SavedPos = pChr->m_JailPos;
 				pChr->m_JailTime = 0;
@@ -1524,7 +1552,14 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
  		{
 			if(!(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
 			{
+				pChr->Core()->m_HookedPlayer = -1;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+				pChr->Core()->m_HookState = HOOK_RETRACTED;
+				pChr->GameWorld()->ReleaseHooked(ClientID);
 				pChr->Core()->m_Pos = pChr->m_SavedPos;
+				pChr->Core()->m_HookPos = pChr->Core()->m_Pos;
+				pChr->Core()->m_Vel = vec2(0,0);
 			}
 			else if(pChr->m_FreezeTime==0)
 			{
