@@ -104,6 +104,7 @@ public:
 		//int m_RefreshTime;
 		int m_FreezeTime;
 		int m_JailTime;
+		int m_JailLvl;
 		int m_Armor;
 		int m_LastMove;
 		vec2 m_PrevPos;

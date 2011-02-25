@@ -438,6 +438,7 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
 	CServer* pServ = (CServer*)pSelf->Server();
 	char aBuf[128];
+	char bBuf[128];
 	int Num = Controller->m_TeleJails.size();
 	int Seconds = -1;
 	int Victim = pResult->GetVictim();
@@ -447,18 +448,48 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 	{
 		if(pResult->NumArguments())
 			Seconds = clamp(pResult->GetInteger(0), -1, 9999);
-
+		if(Seconds == 0)
+			Seconds = 1;
 		if(pSelf->m_apPlayers[Victim])
 		{
-			pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();;
-			pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
-			pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
-			
-			if(Seconds >= 0)
-				str_format(aBuf, sizeof(aBuf), "You have been put in jail for %ds by '%s'", Seconds, pServ->ClientName(ClientID));
+			if(pChr->IsJailed())
+			{
+				if(Seconds > 0)
+				{
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
+					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail. His jail time have been set to %ds.", pServ->ClientName(ClientID), Victim, Seconds);
+					pChr->m_JailTime = Seconds * pServ->TickSpeed();
+					pSelf->SendChat(-1, CHAT_ALL, aBuf);
+				}
+				else if(pChr->m_JailTime != -1)
+				{
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail. He is now in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+					pChr->m_JailTime = -1;
+					pSelf->SendChat(-1, CHAT_ALL, aBuf);
+				}
+				else
+					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+			}
 			else
-				str_format(aBuf, sizeof(aBuf), "You have been put in jail by '%s'", pServ->ClientName(ClientID));
-			pSelf->SendChatTarget(Victim, aBuf);
+			{
+				pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();
+				pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
+				pChr->m_JailLvl = (ClientID==Victim)?-1:pSelf->m_apPlayers[ClientID]->m_Authed;
+				pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
+				if(Seconds >= 0)
+				{
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
+					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d has been put in jail for %ds.", pServ->ClientName(ClientID), Victim, Seconds);
+				}
+				else
+				{
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+					str_format(bBuf, sizeof(bBuf), "'%s' ClientID=%d has been put in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+				}
+				pSelf->SendChat(-1, CHAT_ALL, aBuf);
+			}
+			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", bBuf);
 		}
 	}
 }
@@ -472,14 +503,15 @@ void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int Cl
 	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
 	if(pChr && pSelf->m_apPlayers[Victim])
 	{
-		if(pChr->m_JailTime > 0 || pChr->m_JailTime == -1)
+		if(pChr->IsJailed() && pSelf->m_apPlayers[Victim]->m_Authed >= pChr->m_JailLvl)
 		{
 				pChr->Core()->m_Pos = pChr->m_JailPos;
 				if(g_Config.m_SvRescue)
 					pChr->m_SavedPos = pChr->m_JailPos;
 				pChr->m_JailTime = 0;
-				str_format(aBuf, sizeof(aBuf), "You have been put out of jail by '%s'", pServ->ClientName(ClientID));
-				pSelf->SendChatTarget(Victim, aBuf);
+				pChr->m_JailLvl = 0;
+				str_format(aBuf, sizeof(aBuf), "'%s' have been put out of jail by '%s'", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+				pSelf->SendChat(-1, CHAT_ALL, aBuf);
 		}
 	}
 }

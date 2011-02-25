@@ -172,6 +172,7 @@ public:
 	vec2 m_PrevPos;
 	vec2 m_SavedPos;
 	int m_JailTime;
+	int m_JailLvl;
 	vec2 m_JailPos;
 	int m_CpTick;
 	int m_CpActive;

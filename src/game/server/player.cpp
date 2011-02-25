@@ -280,6 +280,7 @@ void CPlayer::LoadCharacter()
 	}
 	Character->m_FreezeTime = m_PauseInfo.m_FreezeTime;
 	Character->m_JailTime = m_PauseInfo.m_JailTime;
+	Character->m_JailLvl = m_PauseInfo.m_JailLvl;
 	Character->SetLastAction(Server()->Tick());
 	Character->SetArmor(m_PauseInfo.m_Armor);
 	Character->m_LastMove = m_PauseInfo.m_LastMove;
@@ -309,6 +310,7 @@ void CPlayer::SaveCharacter()
 	}
 	m_PauseInfo.m_FreezeTime=Character->m_FreezeTime;
 	m_PauseInfo.m_JailTime=Character->m_JailTime;
+	m_PauseInfo.m_JailLvl=Character->m_JailLvl;
 	m_PauseInfo.m_Armor = Character->GetArmor();
 	m_PauseInfo.m_LastMove = Character->m_LastMove;
 	m_PauseInfo.m_PrevPos = Character->m_PrevPos;
