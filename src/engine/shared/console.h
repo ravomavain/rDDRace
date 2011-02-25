@@ -48,6 +48,7 @@ class CConsole : public IConsole
 	static void Con_Chain(IResult *pResult, void *pUserData, int ClientID);
 	static void Con_Echo(IResult *pResult, void *pUserData, int ClientID);
 	static void Con_Exec(IResult *pResult, void *pUserData, int ClientID);
+	static void Con_Include(IResult *pResult, void *pUserData, int ClientID);
 
 	void ExecuteFileRecurse(const char *pFilename, FPrintCallback pfnAlternativePrintCallback = 0, void *pUserData = 0, FPrintCallback pfnAlternativePrintResponseCallback = 0, void *pResponseUserData = 0, int Level = 3);
 	virtual void ExecuteLineStroked(int Stroke, const char *pStr, const int ClientLevel, const int ClientID, FPrintCallback pfnAlternativePrintCallback = 0, void *pUserData = 0, FPrintCallback pfnAlternativePrintResponseCallback = 0, void *pResponseUserData = 0);

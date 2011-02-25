@@ -513,6 +513,13 @@ void CConsole::Con_Exec(IResult *pResult, void *pUserData, int ClientID)
 	pSelf->ExecuteFile(pResult->GetString(0), pSelf->m_pfnAlternativePrintCallback, pSelf->m_pAlternativePrintCallbackUserdata, pSelf->m_pfnAlternativePrintResponseCallback, pSelf->m_pAlternativePrintResponseCallbackUserdata);
 }
 
+void CConsole::Con_Include(IResult *pResult, void *pUserData, int ClientID)
+{
+	CConsole *pSelf = (CConsole *)pUserData;
+
+	pSelf->ExecuteFile(pResult->GetString(0), pSelf->m_pfnAlternativePrintCallback, pSelf->m_pAlternativePrintCallbackUserdata, pSelf->m_pfnAlternativePrintResponseCallback, pSelf->m_pAlternativePrintResponseCallbackUserdata, 4);
+}
+
 struct CIntVariableData
 {
 	IConsole *m_pConsole;
@@ -633,6 +640,7 @@ CConsole::CConsole(int FlagMask)
 	// register some basic commands
 	Register("echo", "r", CFGFLAG_SERVER|CFGFLAG_CLIENT, Con_Echo, this, "Echo the text", 3);
 	Register("exec", "r", CFGFLAG_SERVER|CFGFLAG_CLIENT, Con_Exec, this, "Execute the specified file", 3);
+	Register("include", "r", CFGFLAG_SERVER|CFGFLAG_CLIENT, Con_Include, this, "Include the specified file", 4);
 	
 	// TODO: this should disappear
 	#define MACRO_CONFIG_INT(Name,ScriptName,Def,Min,Max,Flags,Desc,Level) \
