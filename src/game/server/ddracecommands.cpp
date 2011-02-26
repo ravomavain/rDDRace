@@ -400,7 +400,7 @@ void CGameContext::ConTimerStart(IConsole::IResult *pResult, void *pUserData, in
 	if(pSelf->m_apPlayers[Victim])
 	{
 		pChr->m_DDRaceState = DDRACE_STARTED;
-		str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d Has time now (Timer Started)", pServ->ClientName(ClientID), Victim);
+		str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d Has time now (Timer Started)", pServ->ClientName(Victim), Victim);
 		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 	}
 }
@@ -482,7 +482,7 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				}
 				else
 				{
-					str_format(bBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(ClientID), Victim);
+					str_format(bBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(Victim), Victim);
 					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 				}
 			}
