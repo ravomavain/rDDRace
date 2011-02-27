@@ -359,7 +359,7 @@ else
 	release_nosql_settings.cc.defines:Add("CONF_RELEASE")
 end
 
-if platform == "macosx"  and arch == "ia32" then
+if platform == "macosx"  and (arch == "ia32" or arch == "amd64") then
 	debug_settings_ppc = debug_settings:Copy()
 	debug_settings_ppc.config_name = "debug_ppc"
 	debug_settings_ppc.config_ext = "_ppc_d"
@@ -416,26 +416,74 @@ if platform == "macosx"  and arch == "ia32" then
 	release_nosql_settings_x86.link.flags:Add("-arch i386")
 	release_nosql_settings_x86.cc.defines:Add("CONF_RELEASE")
 
+	debug_settings_x64 = debug_settings:Copy()
+	debug_settings_x64.config_name = "debug_x64"
+	debug_settings_x64.config_ext = "_x64_d"
+	debug_settings_x64.cc.flags:Add("-arch x86_64")
+	debug_settings_x64.link.flags:Add("-arch x86_64")
+	debug_settings_x64.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
+
+	debug_nosql_settings_x64 = debug_nosql_settings:Copy()
+	debug_nosql_settings_x64.config_name = "nosql_debug_x64"
+	debug_nosql_settings_x64.config_ext = "_nosql_x64_d"
+	debug_nosql_settings_x64.cc.flags:Add("-arch x86_64")
+	debug_nosql_settings_x64.link.flags:Add("-arch x86_64")
+	debug_nosql_settings_x64.cc.defines:Add("CONF_DEBUG")
+	
+	release_settings_x64 = release_settings:Copy()
+	release_settings_x64.config_name = "release_x64"
+	release_settings_x64.config_ext = "_x64"
+	release_settings_x64.cc.flags:Add("-arch x86_64")
+	release_settings_x64.link.flags:Add("-arch x86_64")
+	release_settings_x64.cc.defines:Add("CONF_RELEASE", "CONF_SQL")
+	
+	release_nosql_settings_x64 = release_nosql_settings:Copy()
+	release_nosql_settings_x64.config_name = "nosql_release_x64"
+	release_nosql_settings_x64.config_ext = "_nosql_x64"
+	release_nosql_settings_x64.cc.flags:Add("-arch x86_64")
+	release_nosql_settings_x64.link.flags:Add("-arch x86_64")
+	release_nosql_settings_x64.cc.defines:Add("CONF_RELEASE")
+
 	ppc_d = build(debug_settings_ppc)
 	x86_d = build(debug_settings_x86)
+	x64_d = build(debug_settings_x64)
 	sql_ppc_d = build(debug_nosql_settings_ppc)
 	sql_x86_d = build(debug_nosql_settings_x86)
+	sql_x64_d = build(debug_nosql_settings_x64)
 	ppc_r = build(release_settings_ppc)
 	x86_r = build(release_settings_x86)
+	x64_r = build(release_settings_x64)
 	sql_ppc_r = build(release_nosql_settings_ppc)
 	sql_x86_r = build(release_nosql_settings_x86)
-	DefaultTarget("game_debug_x86")
-	PseudoTarget("release", ppc_r, x86_r)
-	PseudoTarget("nosql_release", nosql_ppc_r, nosql_x86_r)
-	PseudoTarget("debug", ppc_d, x86_d)
-	PseudoTarget("nosql_debug", nosql_ppc_d, nosql_x86_d)
+	sql_x64_r = build(release_nosql_settings_x64)
+	
+	if arch == "ia32" then
+		DefaultTarget("game_debug_x86")
+		PseudoTarget("release", ppc_r, x86_r)
+		PseudoTarget("nosql_release", nosql_ppc_r, nosql_x86_r)
+		PseudoTarget("debug", ppc_d, x86_d)
+		PseudoTarget("nosql_debug", nosql_ppc_d, nosql_x86_d)
 
-	PseudoTarget("server_release", "server_release_x86", "server_release_ppc")
-	PseudoTarget("server_nosql_release", "server_nosql_release_x86", "server_nosql_release_ppc")
-	PseudoTarget("server_debug", "server_debug_x86", "server_debug_ppc")
-	PseudoTarget("server_nosql_debug", "server_nosql_debug_x86", "server_nosql_debug_ppc")
-	PseudoTarget("client_release", "client_release_x86", "client_release_ppc")
-	PseudoTarget("client_debug", "client_debug_x86", "client_debug_ppc")
+		PseudoTarget("server_release", "server_release_x86", "server_release_ppc")
+		PseudoTarget("server_nosql_release", "server_nosql_release_x86", "server_nosql_release_ppc")
+		PseudoTarget("server_debug", "server_debug_x86", "server_debug_ppc")
+		PseudoTarget("server_nosql_debug", "server_nosql_debug_x86", "server_nosql_debug_ppc")
+		PseudoTarget("client_release", "client_release_x86", "client_release_ppc")
+		PseudoTarget("client_debug", "client_debug_x86", "client_debug_ppc")
+	else
+		DefaultTarget("game_debug_x64")
+		PseudoTarget("release", ppc_r, x86_r, x64_r)
+		PseudoTarget("nosql_release", nosql_ppc_r, nosql_x86_r, nosql_x64_r)
+		PseudoTarget("debug", ppc_d, x86_d, x64_d)
+		PseudoTarget("nosql_debug", nosql_ppc_d, nosql_x86_d, nosql_x64_d)
+
+		PseudoTarget("server_release", "server_release_x64", "server_release_x86", "server_release_ppc")
+		PseudoTarget("server_nosql_release", "server_nosql_release_x64", "server_nosql_release_x86", "server_nosql_release_ppc")
+		PseudoTarget("server_debug", "server_debug_x64", "server_debug_x86", "server_debug_ppc")
+		PseudoTarget("server_nosql_debug", "server_nosql_debug_x64", "server_nosql_debug_x86", "server_nosql_debug_ppc")
+		PseudoTarget("client_release", "client_release_x64", "client_release_x86", "client_release_ppc")
+		PseudoTarget("client_debug", "client_debug_x64", "client_debug_x86", "client_debug_ppc")
+	end
 else
 	build(debug_settings)
 	build(debug_nosql_settings)
