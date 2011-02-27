@@ -659,6 +659,7 @@ void CGameContext::OnClientEnter(int ClientID)
 		SendChatTarget(ClientID, "Or visit DDRace.info");
 		SendChatTarget(ClientID, "To see this again say /info");
 		SendChatTarget(ClientID, "Note This is an Alpha release, just for testing, your feedback is important!!");
+		SendChatTarget(ClientID, "Rescue mod added by ravomavain : github.com/ravomavain/rDDRace");
 
 		if(g_Config.m_SvWelcome[0]!=0) SendChatTarget(ClientID,g_Config.m_SvWelcome);
 		//str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
