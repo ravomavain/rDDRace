@@ -7,7 +7,7 @@ if len(sys.argv) != 3:
 	print sys.argv[0], "VERSION PLATFORM"
 	sys.exit(-1)
 
-name = "DDRace"
+name = "rDDRace"
 version = sys.argv[1]
 platform = sys.argv[2]
 exe_ext = ""

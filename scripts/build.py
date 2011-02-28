@@ -44,7 +44,7 @@ bam_execution_path = ""
 if version_bam < "0.3.0":
 	bam_execution_path = "src%s" % os.sep
 
-name = "DDRace"
+name = "rDDRace"
 
 flag_download = True
 flag_clean = True

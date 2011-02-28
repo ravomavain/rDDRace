@@ -26,8 +26,8 @@ buildlog.txt
 autoexec.cfg
 bam.exe
 *.bat
-DDRace*
-DDRace-Server*
+*DDRace*
+*DDRace-Server*
 .cproject
 .project
 *.dtb
