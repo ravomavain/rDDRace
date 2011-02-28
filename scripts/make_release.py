@@ -89,19 +89,19 @@ if use_bundle:
 	os.system("lipo -create -output "+name+" "+name+"_ppc "+name+"_x86 "+name+"_x64")
 	os.system("lipo -create -output serverlaunch serverlaunch_ppc serverlaunch_x86 serverlaunch_x64")
 
-	# create Teeworlds appfolder
-	clientbundle_content_dir = os.path.join(package_dir, "Teeworlds.app/Contents")
+	# create rDDRace appfolder
+	clientbundle_content_dir = os.path.join(package_dir, "rDDRace.app/Contents")
 	clientbundle_bin_dir = os.path.join(clientbundle_content_dir, "MacOS")
 	clientbundle_resource_dir = os.path.join(clientbundle_content_dir, "Resources")
 	clientbundle_framework_dir = os.path.join(clientbundle_content_dir, "Frameworks")
-	os.mkdir(os.path.join(package_dir, "Teeworlds.app"))
+	os.mkdir(os.path.join(package_dir, "rDDRace.app"))
 	os.mkdir(clientbundle_content_dir)
 	os.mkdir(clientbundle_bin_dir)
 	os.mkdir(clientbundle_resource_dir)
 	os.mkdir(clientbundle_framework_dir)
 	os.mkdir(os.path.join(clientbundle_resource_dir, "data"))
 	copydir("data", clientbundle_resource_dir)
-	shutil.copy("other/icons/Teeworlds.icns", clientbundle_resource_dir)
+	shutil.copy("other/icons/Teeworlds.icns", os.path.join(clientbundle_resource_dir,"rDDRace.icns"))
 	shutil.copy(name+exe_ext, clientbundle_bin_dir)
 	os.system("cp -R /Library/Frameworks/SDL.framework " + clientbundle_framework_dir)
 	file(os.path.join(clientbundle_content_dir, "Info.plist"), "w").write("""
@@ -112,9 +112,9 @@ if use_bundle:
         <key>CFBundleDevelopmentRegion</key>
         <string>English</string>
         <key>CFBundleExecutable</key>
-        <string>teeworlds</string>
+        <string>rDDRace</string>
         <key>CFBundleIconFile</key>
-        <string>Teeworlds</string>
+        <string>rDDRace</string>
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundlePackageType</key>
@@ -128,11 +128,11 @@ if use_bundle:
 	""" % (version))
 	file(os.path.join(clientbundle_content_dir, "PkgInfo"), "w").write("APPL????")
 
-	# create Teeworlds Server appfolder
-	serverbundle_content_dir = os.path.join(package_dir, "Teeworlds Server.app/Contents")
+	# create rDDRace Server appfolder
+	serverbundle_content_dir = os.path.join(package_dir, "rDDRace Server.app/Contents")
 	serverbundle_bin_dir = os.path.join(serverbundle_content_dir, "MacOS")
 	serverbundle_resource_dir = os.path.join(serverbundle_content_dir, "Resources")
-	os.mkdir(os.path.join(package_dir, "Teeworlds Server.app"))
+	os.mkdir(os.path.join(package_dir, "rDDRace Server.app"))
 	os.mkdir(serverbundle_content_dir)
 	os.mkdir(serverbundle_bin_dir)
 	os.mkdir(serverbundle_resource_dir)
@@ -140,7 +140,7 @@ if use_bundle:
 	os.mkdir(os.path.join(serverbundle_resource_dir, "data/maps"))
 	os.mkdir(os.path.join(serverbundle_resource_dir, "data/mapres"))
 	copydir("data/maps", serverbundle_resource_dir)
-	shutil.copy("other/icons/Teeworlds_srv.icns", serverbundle_resource_dir)
+	shutil.copy("other/icons/Teeworlds_srv.icns", os.path.join(serverbundle_resource_dir,"rDDRace-Server.icns"))
 	shutil.copy(name+"-Server"+exe_ext, serverbundle_bin_dir)
 	shutil.copy("serverlaunch"+exe_ext, serverbundle_bin_dir + "/"+name+"_server")
 	file(os.path.join(serverbundle_content_dir, "Info.plist"), "w").write("""
@@ -151,9 +151,9 @@ if use_bundle:
         <key>CFBundleDevelopmentRegion</key>
         <string>English</string>
         <key>CFBundleExecutable</key>
-        <string>teeworlds_server</string>
+        <string>rDDRace_server</string>
         <key>CFBundleIconFile</key>
-        <string>Teeworlds_srv</string>
+        <string>rDDRace-Server</string>
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundlePackageType</key>
@@ -185,7 +185,7 @@ if use_gz:
 if use_dmg:
 	print "making disk image"
 	os.system("rm -f %s.dmg %s_temp.dmg" % (package, package))
-	os.system("hdiutil create -srcfolder %s -volname Teeworlds -quiet %s_temp" % (package_dir, package))
+	os.system("hdiutil create -srcfolder %s -volname rDDRace -quiet %s_temp" % (package_dir, package))
 	os.system("hdiutil convert %s_temp.dmg -format UDBZ -o %s.dmg -quiet" % (package, package))
 	os.system("rm -f %s_temp.dmg" % package)
 	
