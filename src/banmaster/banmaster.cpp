@@ -203,7 +203,7 @@ int main(int argc, const char **argv) // ignore_convention
 	}
 		
 	m_Net.Open(BindAddr, 0);
-	// TODO: check socket for errors
+	// TODO: DDRace: heinrich5991: check socket for errors
 
 	dbg_msg("banmaster", "started");
 	
