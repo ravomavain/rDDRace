@@ -412,3 +412,43 @@ void CGameTeams::ToggleStrictness(int Team)
 	else
 		GameServer()->SendChatTarget(m_TeamLeader[Team], aBuf);
 }
+
+bool CGameTeams::CanChangeTeams(int AskerClientID, int AboutClientID, int Team)
+{
+	// Check on wrong parameters. +1 for TEAM_SUPER
+	if(AboutClientID < 0 || AboutClientID >= MAX_CLIENTS || Team < 0 || Team >= MAX_CLIENTS + 1)
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: Wrong parameters");
+		return false;
+	}
+	// You can join to TEAM_SUPER at any time, but any other group you cannot if it started
+	if(Team != TEAM_SUPER && m_TeamState[Team] == TEAMSTATE_STARTED)
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: That team already started");
+		return false;
+	}
+	// No need to switch team if you there
+	if(m_Core.Team(AboutClientID) == Team)
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: Already in that team");
+		return false;
+	}
+	// You cannot be in TEAM_SUPER if you not super
+	if(Team == TEAM_SUPER && !Character(AboutClientID)->m_Super)
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: That team is reserved for Super only");
+		return false;
+	}
+	// If you begin race
+	if(Character(AboutClientID)->m_DDRaceState != DDRACE_NONE && Team != TEAM_SUPER)
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: Client Already started");
+		return false;
+	}
+	// If he is past the start, don't let him change teams
+	if(m_TeePassedStart[AboutClientID])
+	{
+		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: Client passed the start tile already");
+		return false;
+	}
+}

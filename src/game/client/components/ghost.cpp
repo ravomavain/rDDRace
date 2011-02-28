@@ -198,7 +198,7 @@ void CGhost::RenderGhost(CGhostCharacter Player, CGhostCharacter Prev, CNetObj_C
 		
 		vec2 Dir = Direction;
 		float Recoil = 0.0f;
-		// TODO: is this correct?
+		// TODO: DDRace: noother: is this correct?
 		float a = (Client()->PredGameTick()-Player.m_AttackTick+IntraTick)/5.0f;
 		if(a < 1)
 			Recoil = sinf(a*pi);
@@ -373,7 +373,7 @@ void CGhost::Save()
 	
 	io_close(File);
 	
-	// remove old ghost from list (TODO: remove other ghosts?)
+	// remove old ghost from list (TODO: DDRace: noother: remove other ghosts?)
 	if(m_pClient->m_pMenus->m_OwnGhost)
 	{
 		char aFile[256];

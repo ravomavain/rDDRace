@@ -73,6 +73,7 @@ public:
 
 	void SetTeamLeader(int Team, int ClientID);
 	void ToggleStrictness(int Team);
+	bool CanChangeTeams(int AskerClientID, int AboutClientID, int Team);
 };
 
 #endif

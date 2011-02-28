@@ -1081,7 +1081,7 @@ void CCharacter::HandleFly()
 {
 	m_Core.HandleFly();
 }
-//TODO: DDRace Revise Braodcast, make sure all vars are needed ..etc
+//TODO: DDRace: Revise Braodcast, make sure all vars are needed ..etc
 void CCharacter::HandleBroadcast()
 {
 	char aBroadcast[128];

@@ -980,7 +980,7 @@ void CGameContext::OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientID)
 		}
 		//also send its time to others
 		if(Score()->PlayerData(ClientID)->m_CurrentTime > 0) {
-			//TODO: make function for this fucking steps
+			// TODO: DDRace: btd: make function for this ####ing steps
 			CNetMsg_Sv_PlayerTime Msg;
 			Msg.m_Time = Score()->PlayerData(ClientID)->m_CurrentTime * 100;
 			Msg.m_ClientID = ClientID;
@@ -1592,8 +1592,8 @@ void CGameContext::OnSetAuthed(int ClientID, int Level)
 void CGameContext::SendRecord(int ClientID)
 {
 	CNetMsg_Sv_Record RecordsMsg;
-	RecordsMsg.m_PlayerTimeBest = Score()->PlayerData(ClientID)->m_BestTime * 100.0f;//
-	RecordsMsg.m_ServerTimeBest = m_pController->m_CurrentRecord * 100.0f;//TODO: finish this
+	RecordsMsg.m_PlayerTimeBest = Score()->PlayerData(ClientID)->m_BestTime * 100.0f;
+	RecordsMsg.m_ServerTimeBest = m_pController->m_CurrentRecord * 100.0f;
 	Server()->SendPackMsg(&RecordsMsg, MSGFLAG_VITAL, ClientID);
 }
 
