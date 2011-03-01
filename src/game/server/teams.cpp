@@ -451,4 +451,5 @@ bool CGameTeams::CanChangeTeams(int AskerClientID, int AboutClientID, int Team)
 		GameServer()->SendChatTarget(AskerClientID, "Can\'t change team: Client passed the start tile already");
 		return false;
 	}
+	return true;
 }
