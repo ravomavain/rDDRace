@@ -139,7 +139,7 @@ void CPlayer::Snap(int SnappingClient)
 	pPlayerInfo->m_Team = m_Team;
 }
 
-void CPlayer::OnDisconnect()
+void CPlayer::OnDisconnect(const char *pReason)
 {
 
 	KillCharacter();
@@ -147,7 +147,10 @@ void CPlayer::OnDisconnect()
 	if(Server()->ClientIngame(m_ClientID))
 	{
 		char aBuf[512];
-		str_format(aBuf, sizeof(aBuf),  "'%s' has left the game", Server()->ClientName(m_ClientID));
+		if(pReason && *pReason)
+			str_format(aBuf, sizeof(aBuf),  "'%s' has left the game (%s)", Server()->ClientName(m_ClientID), pReason);
+		else
+			str_format(aBuf, sizeof(aBuf),  "'%s' has left the game", Server()->ClientName(m_ClientID));
 		GameServer()->SendChat(-1, CGameContext::CHAT_ALL, aBuf);
 
 		str_format(aBuf, sizeof(aBuf), "leave player='%d:%s'", m_ClientID, Server()->ClientName(m_ClientID));
