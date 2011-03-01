@@ -53,7 +53,11 @@ int main(int argc, const char **argv)
 			void *pData = DataFile.GetData(pImg->m_ImageData);
 				
 			char buf[255];
+#if defined(CONF_FAMILY_WINDOWS)
+			_snprintf(buf, sizeof(buf), "%s.png", pName);
+#else
 			snprintf(buf, sizeof(buf), "%s.png", pName);
+#endif
 			
 			png_t png;
 			png_open_file_write(&png, buf);

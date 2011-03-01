@@ -277,7 +277,7 @@ function build(settings)
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "rDDRace-Server", engine, server,
-		game_shared, game_server, zlib)
+		client_link_other, game_shared, game_server, zlib)
 
 	serverlaunch = {}
 	if platform == "macosx" then

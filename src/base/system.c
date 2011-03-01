@@ -1097,15 +1097,15 @@ int net_select_read(NETSOCKET *out_ready, unsigned size_ready, NETSOCKET *sock_a
 {
 	struct timeval tv;
 	fd_set readfds;
+	int maxfd, i, r, count;
 
 	tv.tv_sec = 0;
 	tv.tv_usec = 1000 * timeout;
 
 	FD_ZERO(&readfds);
 
-	int maxfd = -1;
+	maxfd = -1;
 
-	int i;
 	for(i = 0; i < num_sockets; ++i)
 	{
 		FD_SET(sock_arr[i], &readfds);
@@ -1113,11 +1113,11 @@ int net_select_read(NETSOCKET *out_ready, unsigned size_ready, NETSOCKET *sock_a
 			maxfd = sock_arr[i];
 	}
 
-	int r = select(maxfd+1, &readfds, NULL, NULL, &tv);
+	r = select(maxfd+1, &readfds, NULL, NULL, &tv);
 	if (r <= 0)
 		return r;
 
-	int count = 0;
+	count = 0;
 	for(i = 0; i < num_sockets && count < size_ready; ++i)
 		if (FD_ISSET(sock_arr[i], &readfds))
 			out_ready[count++] = sock_arr[i];
