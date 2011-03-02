@@ -492,7 +492,7 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 			{
 				pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();
 				pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
-				pChr->m_JailLvl = (ClientID==Victim)?-1:pSelf->m_apPlayers[ClientID]->m_Authed;
+				pChr->m_JailLvl = (ClientID==Victim)?-1:(ClientID==-1)?4:pSelf->m_apPlayers[ClientID]->m_Authed;
 				pChr->Core()->m_HookedPlayer = -1;
 				pChr->Core()->m_HookState = HOOK_RETRACTED;
 				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
@@ -525,7 +525,7 @@ void CGameContext::ConUnJail(IConsole::IResult *pResult, void *pUserData, int Cl
 	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
 	if(pChr && pSelf->m_apPlayers[Victim])
 	{
-		if(pChr->IsJailed() && pSelf->m_apPlayers[ClientID]->m_Authed >= pChr->m_JailLvl)
+		if(pChr->IsJailed() && ((ClientID==-1) || pSelf->m_apPlayers[ClientID]->m_Authed >= pChr->m_JailLvl))
 		{
 				pChr->Core()->m_HookedPlayer = -1;
 				pChr->Core()->m_HookState = HOOK_RETRACTED;
@@ -1192,6 +1192,8 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 	CPlayer *pPlayer = pSelf->m_apPlayers[ClientID];
 	char aBuf[128];
 
+	if(!pPlayer)
+		return;
 	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
 	{
 		CCharacter* pChr = pPlayer->GetCharacter();

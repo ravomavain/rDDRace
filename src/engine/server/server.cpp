@@ -1729,7 +1729,7 @@ void CServer::ConBan(IConsole::IResult *pResult, void *pUser, int ClientID)
 			Addr.port = Temp.port = 0;
 			if(net_addr_comp(&Addr, &Temp) == 0)
 			{
-				if ((((CServer *)pUser)->m_aClients[ClientID].m_Authed > 0) && ((CServer *)pUser)->m_aClients[ClientID].m_Authed <= ((CServer *)pUser)->m_aClients[i].m_Authed)
+				if (ClientID != -1 && (((CServer *)pUser)->m_aClients[ClientID].m_Authed > 0) && ((CServer *)pUser)->m_aClients[ClientID].m_Authed <= ((CServer *)pUser)->m_aClients[i].m_Authed)
 				{
 					pServer->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "you can\'t ban a player with higher or same level");
 					return;
