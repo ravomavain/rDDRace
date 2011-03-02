@@ -161,6 +161,7 @@ public:
 	bool m_Fly;
 	int m_FreezeTime;
 	int m_FreezeTick;
+	int m_StartFreezeTick;
 	bool m_DeepFreeze;
 	bool m_EndlessHook;
 	int m_PainSoundTimer;

@@ -732,7 +732,7 @@ void CGameContext::OnMessage(int MsgId, CUnpacker *pUnpacker, int ClientID)
 			Info.m_To = ClientID;
 
 			Console()->ExecuteLine(pMsg->m_pMessage + 1, ((CServer *) Server())->m_aClients[ClientID].m_Authed, ClientID, CServer::SendRconLineAuthed, Server(), SendChatResponse, &Info);
-			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "chat", pMsg->m_pMessage);
+			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "chat-command", pMsg->m_pMessage);
 		}
 		else
 			SendChat(ClientID, Team, pMsg->m_pMessage, ClientID);

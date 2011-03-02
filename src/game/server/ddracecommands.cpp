@@ -1190,14 +1190,24 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
 	CPlayer *pPlayer = pSelf->m_apPlayers[ClientID];
+	char aBuf[128];
 
-	 	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
- 	{
- 		CCharacter* pChr = pPlayer->GetCharacter();
+	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
+	{
+		CCharacter* pChr = pPlayer->GetCharacter();
 		if(pChr && pChr->m_SavedPos && pChr->m_FreezeTime)
- 		{
+		{
 			if(!(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
 			{
+				if(g_Config.m_SvRescueTime)
+				{
+					if(pSelf->Server()->Tick() - pChr->m_StartFreezeTick < g_Config.m_SvRescueTime*pSelf->Server()->TickSpeed())
+					{
+						str_format(aBuf, sizeof aBuf, "You must wait %d seconds before using rescue.", g_Config.m_SvRescueTime - (pSelf->Server()->Tick() - pChr->m_StartFreezeTick) / pSelf->Server()->TickSpeed());
+						pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "rescue", aBuf);
+						return;
+					}
+				}
 				pChr->Core()->m_HookedPlayer = -1;
 				pChr->Core()->m_HookState = HOOK_RETRACTED;
 				pChr->Core()->m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
@@ -1209,8 +1219,9 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 			}
 			else if(pChr->m_FreezeTime==0)
 			{
-				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You must be freezed.");
+				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "rescue", "You must be freezed.");
 			}
- 		}
- 	}
- }
+		}
+	}
+}
+

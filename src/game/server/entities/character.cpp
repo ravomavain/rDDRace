@@ -1591,6 +1591,8 @@ bool CCharacter::Freeze(int Seconds)
 		 return false;
 	if (m_FreezeTick < Server()->Tick() - Server()->TickSpeed() || Seconds == -1)
 	{
+		if(m_FreezeTick == 0)
+			m_StartFreezeTick = Server()->Tick();
 		for(int i = 0; i < NUM_WEAPONS; i++)
 			if(m_aWeapons[i].m_Got)
 			 {
@@ -1623,6 +1625,7 @@ bool CCharacter::UnFreeze()
 			m_ActiveWeapon = WEAPON_GUN;
 		m_FreezeTime = 0;
 		m_FreezeTick = 0;
+		m_StartFreezeTick = 0;
 		if (m_ActiveWeapon==WEAPON_HAMMER) m_ReloadTimer = 0;
 		 return true;
 	}
@@ -1658,6 +1661,7 @@ void CCharacter::DDRaceInit()
 	}
 	m_DefEmote = EMOTE_NORMAL;
 	m_DefEmoteReset = -1;
+	m_FreezeTick = 0;
 }
 
 void CCharacter::SavePos()
