@@ -368,6 +368,8 @@ int *CServer::LatestInput(int ClientID, int *size)
 
 const char *CServer::ClientName(int ClientID)
 {
+	if(ClientID == -1)
+		return "Administrator";
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CServer::CClient::STATE_EMPTY)
 		return "(invalid client)";
 	else if(m_aClients[ClientID].m_State < CServer::CClient::STATE_READY)
