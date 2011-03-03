@@ -454,7 +454,6 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
 	CServer* pServ = (CServer*)pSelf->Server();
 	char aBuf[128];
-	char bBuf[128];
 	int Num = Controller->m_TeleJails.size();
 	int Seconds = -1;
 	int Victim = pResult->GetVictim();
@@ -484,7 +483,7 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				}
 				else
 				{
-					str_format(bBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(Victim), Victim);
+					str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(Victim), Victim);
 					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 				}
 			}
