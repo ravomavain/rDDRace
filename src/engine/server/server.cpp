@@ -1344,6 +1344,10 @@ void CServer::EconProcessInput(int Eid)
 				return;
 			}
 		}
+		else if(str_comp_nocase(pCmdStart, "exit") == 0)
+		{
+			EconDropClient(Eid);
+		}
 		else
 		{
 			char aBuf[256];
