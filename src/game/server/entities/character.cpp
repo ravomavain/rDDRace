@@ -772,7 +772,7 @@ void CCharacter::Die(int Killer, int Weapon)
 	// we got to wait 0.5 secs before respawning
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 
-	Teams()->OnCharacterDeath(m_pPlayer->GetCID());
+	((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.SetForceCharacterTeam(m_pPlayer->GetCID(), 0);
 }
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
@@ -961,7 +961,7 @@ bool CCharacter::SameTeam(int ClientID)
 
 void CCharacter::OnFinish()
 {
-	//TODO: this ugly
+	//TODO:DDRace:btd: this ugly
 	float time = (float)(Server()->Tick() - m_StartTime) / ((float)Server()->TickSpeed());
 	if(time < 0.000001f) return;
 	CPlayerData *pData = GameServer()->Score()->PlayerData(m_pPlayer->GetCID());

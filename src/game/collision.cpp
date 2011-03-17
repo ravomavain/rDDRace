@@ -11,6 +11,7 @@
 #include <game/mapitems.h>
 #include <game/layers.h>
 #include <game/collision.h>
+#include <engine/shared/config.h>
 
 CCollision::CCollision()
 {
@@ -349,12 +350,25 @@ int CCollision::IsThrough(int x, int y)
 	int Findex = 0;
 	if (m_pFront)
 		Findex = m_pFront[Ny*m_Width+Nx].m_Index;
-	if (Index == TILE_THROUGH)
-		return Index;
-	else if (Findex == TILE_THROUGH)
-		return Findex;
+	if(!g_Config.m_ClPredictOldHookthrough)
+	{
+		if (Index == TILE_THROUGH)
+			return Index;
+		if (Findex == TILE_THROUGH)
+			return Findex;
+	}
 	else
-		return 0;
+	{
+		if (Index == OLD_THROUGH1)
+			return Index;
+		if (Findex == OLD_THROUGH1)
+			return Findex;
+		if (Index == OLD_THROUGH2)
+			return Index;
+		if (Findex == OLD_THROUGH2)
+			return Findex;
+	}
+	return 0;
 }
 
 int CCollision::IsNoLaser(int x, int y)

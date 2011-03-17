@@ -178,7 +178,6 @@ void CGameContext::ConSuper(IConsole::IResult *pResult, void *pUserData, int Cli
 		pChr->m_Super = true;
 		pChr->UnFreeze();
 		pChr->m_TeamBeforeSuper = pChr->Team();
-		// TODO: DDRace: Rework Teams
 		pChr->Teams()->SetCharacterTeam(Victim, TEAM_SUPER);
 		if(!g_Config.m_SvCheatTime)
 			pChr->m_DDRaceState = DDRACE_CHEAT;
@@ -193,7 +192,6 @@ void CGameContext::ConUnSuper(IConsole::IResult *pResult, void *pUserData, int C
 	if(pChr && pChr->m_Super)
 	{
 		pChr->m_Super = false;
-		// TODO: DDRace: Rework Teams
 		pChr->Teams()->SetForceCharacterTeam(Victim, pChr->m_TeamBeforeSuper);
 	}
 }
@@ -704,23 +702,9 @@ void CGameContext::ConSettings(IConsole::IResult *pResult, void *pUserData, int 
 		float HookTemp;
 		pSelf->m_Tuning.Get("player_collision", &ColTemp);
 		pSelf->m_Tuning.Get("player_hooking", &HookTemp);
-		if(str_comp(pArg, "cheats") == 0)
+		if(str_comp(pArg, "teams") == 0)
 		{
-			str_format(aBuf, sizeof(aBuf), "%s%s",
-					g_Config.m_SvCheats?"People can cheat":"People can't cheat",
-					(g_Config.m_SvCheats)?(g_Config.m_SvCheatTime)?" with time":" without time":"");
-			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
-			if(g_Config.m_SvCheats)
-			{
-				str_format(aBuf, sizeof(aBuf), "%s", g_Config.m_SvEndlessSuperHook?"super can hook you forever":"super can only hook you for limited time");
-				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
-				str_format(aBuf, sizeof(aBuf), "%s", g_Config.m_SvTimer?"admins have the power to control your time":"admins have no power over your time");
-				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
-			}
-		}
-		else if(str_comp(pArg, "teams") == 0)
-		{
-			str_format(aBuf, sizeof(aBuf), "%s %s", g_Config.m_SvTeam == 1 ? "Teams are available on this server" : !g_Config.m_SvTeam ? "Teams are not available on this server" : "You have to be in a team to play on this server", !g_Config.m_SvTeamStrict ? "and if you die in a team only you die" : "and if you die in a team all of you die");
+			str_format(aBuf, sizeof(aBuf), "%s %s", g_Config.m_SvTeam == 1 ? "Teams are available on this server" : !g_Config.m_SvTeam ? "Teams are not available on this server" : "You have to be in a team to play on this server", /*g_Config.m_SvTeamStrict ? "and if you die in a team all of you die" : */"and if you die in a team only you die");
 			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 		}
 		else if(str_comp(pArg, "collision") == 0)
@@ -884,6 +868,7 @@ void CGameContext::ConTogglePause(IConsole::IResult *pResult, void *pUserData, i
 			pPlayer->m_InfoSaved = false;
 			pPlayer->m_PauseInfo.m_Respawn = true;
 			pPlayer->SetTeam(TEAM_RED);
+			//pPlayer->LoadCharacter();//TODO:Check if this system Works
 		}
 		else if(pChr)
 			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", (pChr->Team())?"You can't pause while you are in a team":pChr->GetWeaponGot(WEAPON_NINJA)?"You can't use /pause while you are a ninja":(!pChr->IsGrounded())?"You can't use /pause while you are a in air":"You can't use /pause while you are moving");
@@ -969,6 +954,63 @@ void CGameContext::ConRank(IConsole::IResult *pResult, void *pUserData, int Clie
 			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Showing the rank of other players is not allowed on this server.");
 	else
 		pSelf->Score()->ShowRank(ClientID, pSelf->Server()->ClientName(ClientID));
+}
+
+void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientId)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	if(g_Config.m_SvTeam == 0)
+	{
+		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Admin has disabled teams");
+		return;
+	}
+	else if (g_Config.m_SvTeam == 2)
+	{
+		pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You must join to any team and play with anybody or you will not play");
+	}
+	CPlayer *pPlayer = pSelf->m_apPlayers[ClientId];
+
+	if(pResult->NumArguments() > 0)
+	{
+		if(pPlayer->GetCharacter() == 0)
+		{
+			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can't change teams while you are dead/a spectator.");
+		}
+		else
+		{
+			if(((CGameControllerDDRace*)pSelf->m_pController)->m_Teams.SetCharacterTeam(pPlayer->GetCID(), pResult->GetInteger(0)))
+			{
+				if(pPlayer->m_Last_Team + pSelf->Server()->TickSpeed() * g_Config.m_SvTeamChangeDelay <= pSelf->Server()->Tick())
+				{
+					char aBuf[512];
+					str_format(aBuf, sizeof(aBuf), "%s joined team %d", pSelf->Server()->ClientName(pPlayer->GetCID()), pResult->GetInteger(0));
+					pSelf->SendChat(-1, CGameContext::CHAT_ALL, aBuf);
+					pPlayer->m_Last_Team = pSelf->Server()->Tick();
+				}
+				else
+				{
+					pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can\'t join teams that fast!");
+				}
+			}
+			else
+			{
+				pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You cannot join this team at this time");
+			}
+		}
+	}
+	else
+	{
+		char aBuf[512];
+		if(pPlayer->GetCharacter() == 0)
+		{
+			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can't check your team while you are dead/a spectator.");
+		}
+		else
+		{
+			str_format(aBuf, sizeof(aBuf), "You are in team %d", pPlayer->GetCharacter()->Team());
+			pSelf->Console()->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
+		}
+	}
 }
 
 void CGameContext::ConToggleFly(IConsole::IResult *pResult, void *pUserData, int ClientID)

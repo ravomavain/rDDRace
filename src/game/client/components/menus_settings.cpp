@@ -694,9 +694,9 @@ void CMenus::RenderSettingsDDRace(CUIRect MainView)
 	}
 
 	MainView.HSplitTop(20.0f, &Button, &MainView);
-	if(DoButton_CheckBox(&g_Config.m_ClDDRaceBinds, Localize("Enable DDRace binds when pressing Reset Controls"), g_Config.m_ClDDRaceBinds, &Button))
+	if(DoButton_CheckBox(&g_Config.m_ClShowEntities, Localize("Cheat: Shows Entities in game (can also be toggled via console cl_show_entities)"), g_Config.m_ClShowEntities && g_Config.m_ClDDRaceCheats, &Button))
 	{
-		g_Config.m_ClDDRaceBinds ^= 1;
+		g_Config.m_ClShowEntities ^= 1;
 	}
 
 	MainView.HSplitTop(20.0f, &Button, &MainView);
@@ -734,9 +734,15 @@ void CMenus::RenderSettingsDDRace(CUIRect MainView)
 	{
 		g_Config.m_ClShowOthers ^= 1;
 		if(g_Config.m_ClShowOthers)
-			Console()->ExecuteLine("rcon showothers 1", 4, -1);
+			Console()->ExecuteLine("rcon showothers 1", 4, IConsole::CONSOLELEVEL_USER);
 		else
-			Console()->ExecuteLine("rcon showothers 0", 4, -1);
+			Console()->ExecuteLine("rcon showothers 0", 4, IConsole::CONSOLELEVEL_USER);
+	}
+
+	MainView.HSplitTop(20.0f, &Button, &MainView);
+	if(DoButton_CheckBox(&g_Config.m_ClPredictOldHookthrough, Localize("Predict old Hook through tiles"), g_Config.m_ClPredictOldHookthrough, &Button))
+	{
+		g_Config.m_ClPredictOldHookthrough ^= 1;
 	}
 }
 
