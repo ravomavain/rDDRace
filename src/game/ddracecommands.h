@@ -68,6 +68,8 @@ CONSOLE_COMMAND("mutes", "", CFGFLAG_SERVER, ConMutes, this, "", IConsole::CONSO
 CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
 CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
 
+CONSOLE_COMMAND("utf8", "", CFGFLAG_SERVER, ConUTF8, this, "/utf8 switches from latin to utf8 or vice versa", IConsole::CONSOLELEVEL_USER)
+
 #if defined(CONF_SQL)
 CONSOLE_COMMAND("times", "?s?i", CFGFLAG_SERVER, ConTimes, this, "/times ?s?i shows last 5 times of the server or of a player beginning with name s starting with time i (i = 1 by default)", IConsole::CONSOLELEVEL_USER)
 #endif
