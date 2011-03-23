@@ -50,7 +50,6 @@
 #include "components/race_demo.h"
 #include "components/ghost.h"
 #include <base/tl/sorted_array.h>
-#include "components/background.h"
 
 CGameClient g_GameClient;
 
@@ -77,7 +76,6 @@ static CDamageInd gsDamageInd;
 static CVoting gs_Voting;
 static CRaceDemo gs_RaceDemo;
 static CGhost gs_Ghost;
-static CBackground gs_Background;
 
 static CPlayers gs_Players;
 static CNamePlates gs_NamePlates;
@@ -153,7 +151,6 @@ void CGameClient::OnConsoleInit()
 
 	m_pRaceDemo = &::gs_RaceDemo;
 	m_pGhost = &::gs_Ghost;
-	m_pBackground = &::gs_Background;
 	
 	// make a list of all the systems, make sure to add them in the corrent render order
 	m_All.Add(m_pSkins);
@@ -168,7 +165,6 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(m_pParticles); // doesn't render anything, just updates all the particles
 	m_All.Add(m_pRaceDemo);
 	
-	m_All.Add(m_pBackground);
 	m_All.Add(&gs_MapLayersBackGround); // first to render
 	m_All.Add(&m_pParticles->m_RenderTrail);
 	m_All.Add(&gs_Items);
