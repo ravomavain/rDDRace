@@ -744,7 +744,7 @@ int net_udp_close(NETSOCKET sock)
 	return 0;
 }
 
-NETSOCKET net_tcp_create(const NETADDR *a, int reuse_addr)
+NETSOCKET net_tcp_create(const NETADDR *a)
 {
 	/* TODO: IPv6 support */
     struct sockaddr addr;
@@ -754,18 +754,10 @@ NETSOCKET net_tcp_create(const NETADDR *a, int reuse_addr)
     if(sock < 0)
         return NETSOCKET_INVALID;
 
+    /* bind, we should check for error */
     netaddr_to_sockaddr(a, &addr);
+    bind(sock, &addr, sizeof(addr));
 
-    if (reuse_addr)
-        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof reuse_addr); //failure is noncritical
-
-    if (bind(sock, &addr, sizeof(addr)) != 0)
-    {
-        /*dbg_msg("base", "failed to bind() socket to %d.%d.%d.%d:%d",
-                a->ip[0], a->ip[1], a->ip[2], a->ip[3], a->port);*/
-        close(sock);
-        return NETSOCKET_INVALID;
-    }
     /* return */
     return sock;
 }
@@ -1086,43 +1078,20 @@ void swap_endian(void *data, unsigned elem_size, unsigned num)
 
 int net_socket_read_wait(NETSOCKET sock, int time)
 {
-    NETSOCKET Tmp;
-    int r = net_select_read(&Tmp, 1, &sock, 1, time);
+    struct timeval tv;
+    fd_set readfds;
 
-    //keep compatibility with how it was done before (error on select leads to false positive)
-    return r<0?1:r; // (should be: r<=0?0:1)
-}
+    tv.tv_sec = 0;
+    tv.tv_usec = 1000*time;
 
-int net_select_read(NETSOCKET *out_ready, unsigned size_ready, NETSOCKET *sock_arr, unsigned num_sockets, int timeout)
-{
-	struct timeval tv;
-	fd_set readfds;
-	int maxfd, i, r, count;
+    FD_ZERO(&readfds);
+    FD_SET(sock, &readfds);
 
-	tv.tv_sec = 0;
-	tv.tv_usec = 1000 * timeout;
-
-	FD_ZERO(&readfds);
-
-	maxfd = -1;
-
-	for(i = 0; i < num_sockets; ++i)
-	{
-		FD_SET(sock_arr[i], &readfds);
-		if (sock_arr[i] > maxfd)
-			maxfd = sock_arr[i];
-	}
-
-	r = select(maxfd+1, &readfds, NULL, NULL, &tv);
-	if (r <= 0)
-		return r;
-
-	count = 0;
-	for(i = 0; i < num_sockets && count < size_ready; ++i)
-		if (FD_ISSET(sock_arr[i], &readfds))
-			out_ready[count++] = sock_arr[i];
-
-	return count;
+    /* don't care about writefds and exceptfds */
+    select(sock+1, &readfds, NULL, NULL, &tv);
+    if(FD_ISSET(sock, &readfds))
+     return 1;
+    return 0;
 }
 
 unsigned time_timestamp()
