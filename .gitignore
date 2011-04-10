@@ -6,12 +6,14 @@ datasrc/*.pyc
 objs
 src/game/generated
 SDL.dll
+freetype.dll
 autoexec.cfg
 
 crapnet*
 dilate*
 fake_server*
 map_resave*
+map_version*
 mastersrv*
 packetgen*
 teeworlds*
@@ -50,3 +52,4 @@ bam.exe
 *.opensdf
 banmaster*
 map_extract*
+

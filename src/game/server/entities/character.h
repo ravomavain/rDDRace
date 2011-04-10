@@ -120,10 +120,8 @@ private:
 		vec2 m_ActivationDir;
 		int m_ActivationTick;
 		int m_CurrentMoveTime;
-		
+		int m_OldVelAmount;
 	} m_Ninja;
-
-	int m_PlayerState;// if the client is chatting, accessing a menu or so
 
 	// the player core for the physics	
 	CCharacterCore m_Core;
@@ -132,9 +130,10 @@ private:
 	int m_ReckoningTick; // tick that we are performing dead reckoning From
 	CCharacterCore m_SendCore; // core that we should send
 	CCharacterCore m_ReckoningCore; // the dead reckoning core
-	
-	//DDRace
-	void HandleFly();
+
+	// DDRace
+
+
 	void HandleTiles(int Index);
 	float m_Time;
 	int m_LastBroadcast;
@@ -158,7 +157,6 @@ public:
 	int m_HammerType;
 	bool m_Super;
 	int m_TeamBeforeSuper;
-	bool m_Fly;
 	int m_FreezeTime;
 	int m_FreezeTick;
 	int m_StartFreezeTick;
@@ -217,8 +215,6 @@ public:
 	void SetLastWeapon(int LastWeap) {m_LastWeapon = LastWeap; };
 	int GetActiveWeapon() { return m_ActiveWeapon; };
 	void SetActiveWeapon(int ActiveWeap) {m_ActiveWeapon = ActiveWeap; };
-	int GetPlayerState() { return m_PlayerState; };
-	void SetPlayerState(int PlayerState) {m_PlayerState = PlayerState; };
 	void SetLastAction(int LastAction) {m_LastAction = LastAction; };
 	int GetArmor() { return m_Armor; };
 	void SetArmor(int Armor) {m_Armor = Armor; };
@@ -235,14 +231,14 @@ public:
 	void SetNinjaActivationDir(vec2 ActivationDir) { m_Ninja.m_ActivationDir = ActivationDir; };
 	void SetNinjaActivationTick(int ActivationTick) { m_Ninja.m_ActivationTick = ActivationTick; };
 	void SetNinjaCurrentMoveTime(int CurrentMoveTime) { m_Ninja.m_CurrentMoveTime = CurrentMoveTime; };
-
 };
 
-enum 
+enum
 {
 	DDRACE_NONE = 0,
 	DDRACE_STARTED,
 	DDRACE_CHEAT, // no time and won't start again unless ordered by a mod or death
 	DDRACE_FINISHED
 };
+
 #endif

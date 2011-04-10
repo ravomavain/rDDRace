@@ -9,7 +9,6 @@ config = NewConfig()
 config:Add(OptCCompiler("compiler"))
 config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-protector -fstack-protector-all"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
-config:Add(OptLibrary("wavpack", "wavpack/wavpack.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
 config:Finalize("config.lua")
@@ -111,17 +110,21 @@ nethash = CHash("src/game/generated/nethash.c", "src/engine/shared/protocol.h", 
 
 client_link_other = {}
 client_depends = {}
+server_link_other = {}
 server_sql_depends = {}
 
 if family == "windows" then
+	table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib\\freetype.dll"))
 	table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\vc2005libs\\SDL.dll"))
 	table.insert(server_sql_depends, CopyToDirectory(".", "other\\mysql\\vc2005libs\\mysqlcppconn.dll"))
 	table.insert(server_sql_depends, CopyToDirectory(".", "other\\mysql\\vc2005libs\\libmysql.dll"))
-	
+
 	if config.compiler.driver == "cl" then
 		client_link_other = {ResCompile("other/icons/teeworlds_cl.rc")}
+		server_link_other = {ResCompile("other/icons/teeworlds_srv_cl.rc")}
 	elseif config.compiler.driver == "gcc" then
 		client_link_other = {ResCompile("other/icons/teeworlds_gcc.rc")}
+		server_link_other = {ResCompile("other/icons/teeworlds_srv_gcc.rc")}
 	end
 end
 
@@ -139,8 +142,8 @@ function build(settings)
 	else
 		settings.cc.flags:Add("-Wall")
 		if platform == "macosx" then
-			settings.cc.flags:Add("-mmacosx-version-min=10.5", "-isysroot /Developer/SDKs/MacOSX10.5.sdk")
-			settings.link.flags:Add("-mmacosx-version-min=10.5", "-isysroot /Developer/SDKs/MacOSX10.5.sdk")
+			settings.cc.flags:Add("-mmacosx-version-min=10.5")
+			settings.link.flags:Add("-mmacosx-version-min=10.5")
 		elseif config.stackprotector.value == 1 then
 			settings.cc.flags:Add("-fstack-protector", "-fstack-protector-all")
 			settings.link.flags:Add("-fstack-protector", "-fstack-protector-all")
@@ -152,7 +155,7 @@ function build(settings)
 	settings.cc.includes:Add("other/mysql/include")
 
 	if family == "unix" then
-		if platform == "macosx" then
+   		if platform == "macosx" then
 			settings.link.frameworks:Add("Carbon")
 			settings.link.frameworks:Add("AppKit")
 		else
@@ -167,7 +170,7 @@ function build(settings)
 	end
 	
 	-- compile zlib if needed
-	if config.zlib.value == true then
+	if config.zlib.value == 1 then
 		settings.link.libs:Add("z")
 		if config.zlib.include_path then
 			settings.cc.includes:Add(config.zlib.include_path)
@@ -178,18 +181,8 @@ function build(settings)
 		settings.cc.includes:Add("src/engine/external/zlib")
 	end
 
-	if config.wavpack.value == true then
-		settings.link.libs:Add("wavpack")
-		if config.wavpack.include_path then
-			settings.cc.includes:Add(config.wavpack.include_path)
-		end
-		wavpack = {}
-	else
-		wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
-		settings.cc.includes:Add("src/engine/external/") --The header is wavpack/wavpack.h so include the external folder
-	end
-
 	-- build the small libraries
+	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 	
 	-- build game components
@@ -199,17 +192,18 @@ function build(settings)
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
+		if not string.find(settings.config_name, "nosql") then
+			server_settings.link.libs:Add("mysqlcppconn-static")
+			server_settings.link.libs:Add("mysqlclient")
+		end
+		
 		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
-			client_settings.link.frameworks:Add("AGL")
-			client_settings.link.frameworks:Add("Carbon")
-			client_settings.link.frameworks:Add("Cocoa")
-			launcher_settings.link.frameworks:Add("Cocoa")
+            client_settings.link.frameworks:Add("AGL")
+            client_settings.link.frameworks:Add("Carbon")
+            client_settings.link.frameworks:Add("Cocoa")
+            launcher_settings.link.frameworks:Add("Cocoa")
 		else
-			if not string.find(settings.config_name, "nosql") then
-				server_settings.link.libs:Add("mysqlcppconn-static")
-				server_settings.link.libs:Add("mysqlclient")
-			end
 			client_settings.link.libs:Add("X11")
 			client_settings.link.libs:Add("GL")
 			client_settings.link.libs:Add("GLU")
@@ -250,8 +244,7 @@ function build(settings)
 	game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
 
 	-- build tools (TODO: fix this so we don't get double _d_d stuff)
-	tools_src_c = Collect("src/tools/*.c")
-	tools_src_cpp = Collect("src/tools/*.cpp")
+	tools_src = Collect("src/tools/*.cpp", "src/tools/*.c")
 
 	client_osxlaunch = {}
 	server_osxlaunch = {}
@@ -260,15 +253,10 @@ function build(settings)
 		server_osxlaunch = Compile(launcher_settings, "src/osxlaunch/server.m")
 	end
 	
-	tools_c = {}
-	for i,v in ipairs(tools_src_c) do
+	tools = {}
+	for i,v in ipairs(tools_src) do
 		toolname = PathFilename(PathBase(v))
-		tools_c[i] = Link(settings, toolname, Compile(settings, v), engine, zlib)
-	end
-	tools_cpp = {}
-	for i,v in ipairs(tools_src_cpp) do
-		toolname = PathFilename(PathBase(v))
-		tools_cpp[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
+		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
 	end
 	
 	-- build client, server, version server and master server
@@ -277,7 +265,7 @@ function build(settings)
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "rDDRace-Server", engine, server,
-		client_link_other, game_shared, game_server, zlib)
+		game_shared, game_server, zlib, server_link_other)
 
 	serverlaunch = {}
 	if platform == "macosx" then
@@ -313,7 +301,7 @@ function build(settings)
 	v = PseudoTarget("versionserver".."_"..settings.config_name, versionserver_exe)
 	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
 	b = PseudoTarget("banmaster".."_"..settings.config_name, banmaster_exe)
-	t = PseudoTarget("tools".."_"..settings.config_name, tools_c, tools_cpp)
+	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
 	all = PseudoTarget(settings.config_name, c, s, v, m, b, t)
 	return all
@@ -397,8 +385,6 @@ if platform == "macosx" then
 	debug_settings_x86.cc.flags:Add("-arch i386")
 	debug_settings_x86.link.flags:Add("-arch i386")
 	debug_settings_x86.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
-	debug_settings_x86.link.libs:Add("mysqlcppconn-static")
-	debug_settings_x86.link.libs:Add("mysqlclient")
 	debug_settings_x86.link.libpath:Add("other/mysql/mac/lib32")
 
 	debug_nosql_settings_x86 = debug_nosql_settings:Copy()
@@ -414,8 +400,6 @@ if platform == "macosx" then
 	release_settings_x86.cc.flags:Add("-arch i386")
 	release_settings_x86.link.flags:Add("-arch i386")
 	release_settings_x86.cc.defines:Add("CONF_RELEASE", "CONF_SQL")
-	release_settings_x86.link.libs:Add("mysqlcppconn-static")
-	release_settings_x86.link.libs:Add("mysqlclient")
 	release_settings_x86.link.libpath:Add("other/mysql/mac/lib32")
 	
 	release_nosql_settings_x86 = release_nosql_settings:Copy()
@@ -431,8 +415,6 @@ if platform == "macosx" then
 	debug_settings_x64.cc.flags:Add("-arch x86_64")
 	debug_settings_x64.link.flags:Add("-arch x86_64")
 	debug_settings_x64.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
-	debug_settings_x64.link.libs:Add("mysqlcppconn-static")
-	debug_settings_x64.link.libs:Add("mysqlclient")
 	debug_settings_x64.link.libpath:Add("other/mysql/mac/lib64")
 
 	debug_nosql_settings_x64 = debug_nosql_settings:Copy()
@@ -448,8 +430,6 @@ if platform == "macosx" then
 	release_settings_x64.cc.flags:Add("-arch x86_64")
 	release_settings_x64.link.flags:Add("-arch x86_64")
 	release_settings_x64.cc.defines:Add("CONF_RELEASE", "CONF_SQL")
-	release_settings_x64.link.libs:Add("mysqlcppconn-static")
-	release_settings_x64.link.libs:Add("mysqlclient")
 	release_settings_x64.link.libpath:Add("other/mysql/mac/lib64")
 	
 	release_nosql_settings_x64 = release_nosql_settings:Copy()

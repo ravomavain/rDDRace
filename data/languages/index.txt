@@ -1,8 +1,11 @@
 
 ##### language indices #####
 
-bosnian
-== Bosanski
+#bosnian
+#== Bosanski
+
+bulgarian
+== Български
 
 czech
 == Česky
@@ -19,23 +22,26 @@ french
 german
 == Deutsch
 
-italian
-== Italiano
+#italian
+#== Italiano
 
-polish
-== Polski
+#polish
+#== Polski
 
-portuguese
-== Português
+#portuguese
+#== Português
 
-romanian
-== Română
+#romanian
+#== Română
 
-russian
-== Русский
+#russian
+#== Русский
 
-serbian
-== Srpski
+#serbian
+#== Srpski
+
+slovak
+== Slovensky
 
 spanish
 == Español
@@ -43,5 +49,5 @@ spanish
 swedish
 == Svenska
 
-ukrainian
-== Українська
+#ukrainian
+#== Українська
