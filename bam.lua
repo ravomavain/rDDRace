@@ -202,11 +202,6 @@ function build(settings)
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
-		if not string.find(settings.config_name, "nosql") then
-			server_settings.link.libs:Add("mysqlcppconn-static")
-			server_settings.link.libs:Add("mysqlclient")
-		end
-		
 		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
             client_settings.link.frameworks:Add("AGL")
@@ -218,6 +213,8 @@ function build(settings)
 			client_settings.link.libs:Add("GL")
 			client_settings.link.libs:Add("GLU")
 			if not string.find(settings.config_name, "nosql") then
+				server_settings.link.libs:Add("mysqlcppconn-static")
+				server_settings.link.libs:Add("mysqlclient")
 				if arch == "amd64" then
 					server_settings.link.libpath:Add("other/mysql/linux/lib64")
 				else
@@ -395,6 +392,8 @@ if platform == "macosx" then
 	debug_settings_x86.cc.flags:Add("-arch i386")
 	debug_settings_x86.link.flags:Add("-arch i386")
 	debug_settings_x86.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
+	debug_settings_x86.link.libs:Add("mysqlcppconn-static")
+	debug_settings_x86.link.libs:Add("mysqlclient")
 	debug_settings_x86.link.libpath:Add("other/mysql/mac/lib32")
 
 	debug_nosql_settings_x86 = debug_nosql_settings:Copy()
@@ -410,6 +409,8 @@ if platform == "macosx" then
 	release_settings_x86.cc.flags:Add("-arch i386")
 	release_settings_x86.link.flags:Add("-arch i386")
 	release_settings_x86.cc.defines:Add("CONF_RELEASE", "CONF_SQL")
+	release_settings_x86.link.libs:Add("mysqlcppconn-static")
+	release_settings_x86.link.libs:Add("mysqlclient")
 	release_settings_x86.link.libpath:Add("other/mysql/mac/lib32")
 	
 	release_nosql_settings_x86 = release_nosql_settings:Copy()
@@ -425,6 +426,8 @@ if platform == "macosx" then
 	debug_settings_x64.cc.flags:Add("-arch x86_64")
 	debug_settings_x64.link.flags:Add("-arch x86_64")
 	debug_settings_x64.cc.defines:Add("CONF_DEBUG", "CONF_SQL")
+	debug_settings_x64.link.libs:Add("mysqlcppconn-static")
+	debug_settings_x64.link.libs:Add("mysqlclient")
 	debug_settings_x64.link.libpath:Add("other/mysql/mac/lib64")
 
 	debug_nosql_settings_x64 = debug_nosql_settings:Copy()
@@ -440,6 +443,8 @@ if platform == "macosx" then
 	release_settings_x64.cc.flags:Add("-arch x86_64")
 	release_settings_x64.link.flags:Add("-arch x86_64")
 	release_settings_x64.cc.defines:Add("CONF_RELEASE", "CONF_SQL")
+	release_settings_x64.link.libs:Add("mysqlcppconn-static")
+	release_settings_x64.link.libs:Add("mysqlclient")
 	release_settings_x64.link.libpath:Add("other/mysql/mac/lib64")
 	
 	release_nosql_settings_x64 = release_nosql_settings:Copy()
