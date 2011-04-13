@@ -130,10 +130,10 @@ if use_bundle:
 	file(os.path.join(clientbundle_content_dir, "PkgInfo"), "w").write("APPL????")
 
 	# create rDDRace Server appfolder
-	serverbundle_content_dir = os.path.join(package_dir, "rDDRace Server.app/Contents")
+	serverbundle_content_dir = os.path.join(package_dir, "rDDRace-Server.app/Contents")
 	serverbundle_bin_dir = os.path.join(serverbundle_content_dir, "MacOS")
 	serverbundle_resource_dir = os.path.join(serverbundle_content_dir, "Resources")
-	os.mkdir(os.path.join(package_dir, "rDDRace Server.app"))
+	os.mkdir(os.path.join(package_dir, "rDDRace-Server.app"))
 	os.mkdir(serverbundle_content_dir)
 	os.mkdir(serverbundle_bin_dir)
 	os.mkdir(serverbundle_resource_dir)
@@ -152,7 +152,7 @@ if use_bundle:
         <key>CFBundleDevelopmentRegion</key>
         <string>English</string>
         <key>CFBundleExecutable</key>
-        <string>rDDRace_server</string>
+        <string>rDDRace_Server</string>
         <key>CFBundleIconFile</key>
         <string>rDDRace-Server</string>
         <key>CFBundleInfoDictionaryVersion</key>
