@@ -31,6 +31,17 @@ float CConsole::CResult::GetFloat(unsigned Index)
 	return str_tofloat(m_apArgs[Index]);
 }
 
+void CConsole::CResult::Print(int Level, const char *pFrom, const char *pStr)
+{
+	dbg_msg(pFrom ,"%s", pStr);
+	if(Level <= g_Config.m_ConsoleOutputLevel && m_pfnPrintCallback)
+	{
+		char aBuf[1024];
+		str_format(aBuf, sizeof(aBuf), "[%s]: %s", pFrom, pStr);
+		(*m_pfnPrintCallback)(aBuf, m_pPrintCallbackUserData);
+	}
+}
+
 // the maximum number of tokens occurs in a string of length CONSOLE_MAX_STR_LENGTH with tokens size 1 separated by single spaces
 
 
@@ -40,21 +51,21 @@ int CConsole::ParseStart(CResult *pResult, const char *pString, int Length)
 	int Len = sizeof(pResult->m_aStringStorage);
 	if(Length < Len)
 		Len = Length;
-		
+
 	str_copy(pResult->m_aStringStorage, pString, Length);
 	pStr = pResult->m_aStringStorage;
-	
+
 	// get command
 	pStr = str_skip_whitespaces(pStr);
 	pResult->m_pCommand = pStr;
 	pStr = str_skip_to_whitespace(pStr);
-	
+
 	if(*pStr)
 	{
 		pStr[0] = 0;
 		pStr++;
 	}
-	
+
 	pResult->m_pArgsStart = pStr;
 	return 0;
 }
@@ -67,24 +78,24 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 	int Error = 0;
 
 	pResult->ResetVictim();
-	
+
 	pStr = pResult->m_pArgsStart;
 
-	while(1)	
+	while(1)
 	{
 		// fetch command
 		Command = *pFormat;
 		pFormat++;
-		
+
 		if(!Command)
 			break;
-		
+
 		if(Command == '?')
 			Optional = 1;
 		else
 		{
 			pStr = str_skip_whitespaces(pStr);
-		
+
 			if(!(*pStr)) // error, non optional command needs value
 			{
 				if(!Optional)
@@ -104,14 +115,14 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 				}
 				break;
 			}
-			
+
 			// add token
 			if(*pStr == '"')
 			{
 				char *pDst;
 				pStr++;
 				pResult->AddArgument(pStr);
-				
+
 				pDst = pStr; // we might have to process escape data
 				while(1)
 				{
@@ -126,22 +137,22 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 					}
 					else if(pStr[0] == 0)
 						return 1; // return error
-						
+
 					*pDst = *pStr;
 					pDst++;
 					pStr++;
 				}
-				
+
 				// write null termination
 				*pDst = 0;
 
-				
+
 				pStr++;
 			}
 			else
 			{
 				char* pVictim = 0;
-				
+
 				if (Command != 'v')
 					pResult->AddArgument(pStr);
 				else
@@ -176,8 +187,9 @@ int CConsole::ParseArgs(CResult *pResult, const char *pFormat)
 void CConsole::RegisterPrintCallback(FPrintCallback pfnPrintCallback, void *pUserData)
 {
 	m_pfnPrintCallback = pfnPrintCallback;
-	m_pPrintCallbackUserdata = pUserData;
+	m_pPrintCallbackUserData = pUserData;
 }
+
 
 void CConsole::Print(int Level, const char *pFrom, const char *pStr)
 {
@@ -186,10 +198,7 @@ void CConsole::Print(int Level, const char *pFrom, const char *pStr)
 	{
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "[%s]: %s", pFrom, pStr);
-		if (!m_pfnAlternativePrintCallback || m_PrintUsed == 0)
-			m_pfnPrintCallback(aBuf, m_pPrintCallbackUserdata);
-		else
-			m_pfnAlternativePrintCallback(aBuf, m_pAlternativePrintCallbackUserdata);
+		(*m_pfnPrintCallback)(aBuf, m_pPrintCallbackUserData);
 	}
 }
 
@@ -197,14 +206,14 @@ bool CConsole::LineIsValid(const char *pStr)
 {
 	if(!pStr || *pStr == 0)
 		return false;
-	
+
 	do
 	{
 		CResult Result;
 		const char *pEnd = pStr;
 		const char *pNextPart = 0;
 		int InString = 0;
-		
+
 		while(*pEnd)
 		{
 			if(*pEnd == '"')
@@ -216,25 +225,25 @@ bool CConsole::LineIsValid(const char *pStr)
 			}
 			else if(!InString)
 			{
-				if(*pEnd == ';')  // command separator
+				if(*pEnd == ';') // command separator
 				{
 					pNextPart = pEnd+1;
 					break;
 				}
-				else if(*pEnd == '#')  // comment, no need to do anything more
+				else if(*pEnd == '#') // comment, no need to do anything more
 					break;
 			}
-			
+
 			pEnd++;
 		}
-		
+
 		if(ParseStart(&Result, pStr, (pEnd-pStr) + 1) != 0)
 			return false;
 
 		CCommand *pCommand = FindCommand(Result.m_pCommand, m_FlagMask);
 		if(!pCommand || ParseArgs(&Result, pCommand->m_pParams))
 			return false;
-		
+
 		pStr = pNextPart;
 	}
 	while(pStr && *pStr);
@@ -242,15 +251,25 @@ bool CConsole::LineIsValid(const char *pStr)
 	return true;
 }
 
-void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, const int ClientLevel, const int ClientID, FPrintCallback pfnAlternativePrintCallback, void *pUserData, FPrintCallback pfnAlternativePrintResponseCallback, void *pResponseUserData)
-{	
+void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, int ClientID, int Level, IConsole::IResult *pResult)
+{
+	ExecuteLineStroked(Stroke, pStr, ClientID, Level, ((CResult *)pResult)->m_pfnPrintCallback, ((CResult *)pResult)->m_pPrintCallbackUserData);
+}
+
+void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, int ClientID, int Level, IConsole::FPrintCallback pfnPrintCallback, void *pPrintCallbackUserData)
+{
 	while(pStr && *pStr)
 	{
 		CResult Result;
 		const char *pEnd = pStr;
 		const char *pNextPart = 0;
 		int InString = 0;
-		
+
+		if(pfnPrintCallback)
+			Result.SetPrintCallback(pfnPrintCallback, pPrintCallbackUserData);
+		else
+			Result.SetPrintCallback(m_pfnPrintCallback, m_pPrintCallbackUserData);
+
 		while(*pEnd)
 		{
 			if(*pEnd == '"')
@@ -262,18 +281,18 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, const int Client
 			}
 			else if(!InString)
 			{
-				if(*pEnd == ';')  // command separator
+				if(*pEnd == ';') // command separator
 				{
 					pNextPart = pEnd+1;
 					break;
 				}
-				else if(*pEnd == '#')  // comment, no need to do anything more
+				else if(*pEnd == '#') // comment, no need to do anything more
 					break;
 			}
-			
+
 			pEnd++;
 		}
-		
+
 		if(ParseStart(&Result, pStr, (pEnd-pStr) + 1) != 0)
 			return;
 
@@ -288,16 +307,14 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, const int Client
 				Result.AddArgument(m_paStrokeStr[Stroke]);
 				IsStrokeCommand = 1;
 			}
-			
+
 			if(Stroke || IsStrokeCommand)
 			{
 				if(ParseArgs(&Result, pCommand->m_pParams))
 				{
-					RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
 					char aBuf[256];
 					str_format(aBuf, sizeof(aBuf), "Invalid arguments... Usage: %s %s", pCommand->m_pName, pCommand->m_pParams);
-					PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
-			 		ReleaseAlternativePrintResponseCallback();
+					Result.Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 				}
 				else if(m_StoreCommands && pCommand->m_Flags&CFGFLAG_STORE)
 				{
@@ -311,110 +328,74 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, const int Client
 					if(Result.GetVictim() == CResult::VICTIM_ME)
 						Result.SetVictim(ClientID);
 
-					if((ClientLevel < pCommand->m_Level && !(pCommand->m_Flags & CMDFLAG_HELPERCMD)) || (ClientLevel < 1 && (pCommand->m_Flags & CMDFLAG_HELPERCMD)))
+					if((Level < pCommand->m_Level && !(pCommand->m_Flags & CMDFLAG_HELPERCMD)) || (Level < 1 && (pCommand->m_Flags & CMDFLAG_HELPERCMD)))
 					{
-						RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-
 						char aBuf[256];
-						if (pCommand->m_Level == 100 && ClientLevel < 100)
+						if (pCommand->m_Level == 100 && Level < 100)
 						{
 							str_format(aBuf, sizeof(aBuf), "You can't use this command: %s", pCommand->m_pName);
 						}
 						else
 						{
-							str_format(aBuf, sizeof(aBuf), "You have too low level to use command: %s. Your level: %d. Need level: %d", pCommand->m_pName, ClientLevel, pCommand->m_Level);
+							str_format(aBuf, sizeof(aBuf), "You have too low level to use command: %s. Your level: %d. Need level: %d", pCommand->m_pName, Level, pCommand->m_Level);
 							dbg_msg("server", "client tried rcon command ('%s') without permisson. ClientID=%d ", pCommand->m_pName, ClientID);
 						}
-						PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
-
-						ReleaseAlternativePrintResponseCallback();
+						Result.Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 					}
-					else if(ClientLevel == 1 && (pCommand->m_Flags & CMDFLAG_HELPERCMD) && Result.GetVictim() != ClientID)
+					else if(Level == 1 && (pCommand->m_Flags & CMDFLAG_HELPERCMD) && Result.GetVictim() != ClientID)
 					{
-						RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-						PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", "As a helper you can't use commands on others.");
+						Result.Print(OUTPUT_LEVEL_STANDARD, "Console", "As a helper you can't use commands on others.");
 						dbg_msg("server", "helper tried rcon command ('%s') on others without permission. ClientID=%d", pCommand->m_pName, ClientID);
-						ReleaseAlternativePrintResponseCallback();
 					}
-					else if((!g_Config.m_SvCheats || g_Config.m_SvRegister || !g_Config.m_Password[0]) && (pCommand->m_Flags & CMDFLAG_CHEAT))
+					else if((!g_Config.m_SvCheats || g_Config.m_SvRegister) && (pCommand->m_Flags & CMDFLAG_CHEAT))
 					{
-						RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-						PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", "Cheats are not allowed on registered or un-passworded servers");
+						Result.Print(OUTPUT_LEVEL_STANDARD, "Console", "Cheats are not allowed on registered or un-passworded servers");
 						dbg_msg("server", "client tried rcon cheat ('%s') with cheats off. ClientID=%d", pCommand->m_pName, ClientID);
-						ReleaseAlternativePrintResponseCallback();
 					}
 					else
 					{
-						if(pCommand->m_Flags & CMDFLAG_CHEAT)
+						if(pCommand->m_Flags & CMDFLAG_CHEAT && !m_Cheated)
+						{
 							m_Cheated = true;
+							Result.Print(OUTPUT_LEVEL_STANDARD, "Cheated", "You have cheated, no records will be saved until server shutdown");
+							str_format(g_Config.m_SvBroadcast, sizeof(g_Config.m_SvBroadcast), "Cheated: No records will be saved");
+						}
 						if (Result.HasVictim())
 						{
 							if(Result.GetVictim() == CResult::VICTIM_ALL)
 							{
 								for (int i = 0; i < MAX_CLIENTS; i++)
 								{
-									if (ClientOnline(i) && CompareClients(ClientLevel, i))
+									if (ClientOnline(i) && CompareClients(Level, i))
 									{
 										Result.SetVictim(i);
-										RegisterAlternativePrintCallback(pfnAlternativePrintCallback, pUserData);
-										RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-
 										pCommand->m_pfnCallback(&Result, pCommand->m_pUserData, ClientID);
-
-										ReleaseAlternativePrintResponseCallback();
-										ReleaseAlternativePrintCallback();
 									}
 								}
 							}
 							else
 							{
 								if (!ClientOnline(Result.GetVictim()))
-								{
-									RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-									PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", "client is offline");
-									ReleaseAlternativePrintResponseCallback();
-								}
-								else if (!CompareClients(ClientLevel, Result.GetVictim()) && ClientID != Result.GetVictim())
-								{
-									RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-									PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", "you can not use commands on players with the same or higher level than you");
-									ReleaseAlternativePrintResponseCallback();
-								}
+									Result.Print(OUTPUT_LEVEL_STANDARD, "Console", "client is offline");
+								else if (!CompareClients(Level, Result.GetVictim()) && ClientID != Result.GetVictim())
+									Result.Print(OUTPUT_LEVEL_STANDARD, "Console", "you can not use commands on players with the same or higher level than you");
 								else
-								{
-									RegisterAlternativePrintCallback(pfnAlternativePrintCallback, pUserData);
-									RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-
 									pCommand->m_pfnCallback(&Result, pCommand->m_pUserData, ClientID);
-
-									ReleaseAlternativePrintResponseCallback();
-									ReleaseAlternativePrintCallback();
-								}
 							}
 						}
 						else
-						{
-							RegisterAlternativePrintCallback(pfnAlternativePrintCallback, pUserData);
-							RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
-
 							pCommand->m_pfnCallback(&Result, pCommand->m_pUserData, ClientID);
-
-							ReleaseAlternativePrintResponseCallback();
-							ReleaseAlternativePrintCallback();
-						}
 					}
 				}
 			}
 		}
 		else if(Stroke)
 		{
-			RegisterAlternativePrintResponseCallback(pfnAlternativePrintResponseCallback, pResponseUserData);
 			char aBuf[256];
 			str_format(aBuf, sizeof(aBuf), "No such command: %s.", Result.m_pCommand);
-			PrintResponse(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
-			ReleaseAlternativePrintResponseCallback();
+			Result.Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 		}
-		
+
 		pStr = pNextPart;
 	}
 }
@@ -429,7 +410,7 @@ void CConsole::PossibleCommands(const char *pStr, int FlagMask, FPossibleCallbac
 			if(str_find_nocase(pCommand->m_pName, pStr))
 				pfnCallback(pCommand->m_pName, pUser);
 		}
-	}	
+	}
 }
 
 CConsole::CCommand *CConsole::FindCommand(const char *pName, int FlagMask)
@@ -442,19 +423,28 @@ CConsole::CCommand *CConsole::FindCommand(const char *pName, int FlagMask)
 			if(str_comp_nocase(pCommand->m_pName, pName) == 0)
 				return pCommand;
 		}
-	}	
-	
+	}
+
 	return 0x0;
 }
 
-void CConsole::ExecuteLine(const char *pStr, const int ClientLevel, const int ClientID, FPrintCallback pfnAlternativePrintCallback, void *pUserData, FPrintCallback pfnAlternativePrintResponseCallback, void *pResponseUserData)
+void CConsole::ExecuteLine(const char *pStr, int ClientID, int Level, IConsole::IResult *pResult)
 {
-	CConsole::ExecuteLineStroked(1, pStr, ClientLevel, ClientID, pfnAlternativePrintCallback, pUserData, pfnAlternativePrintResponseCallback, pResponseUserData); // press it
-	CConsole::ExecuteLineStroked(0, pStr, ClientLevel, ClientID, pfnAlternativePrintCallback, pUserData, pfnAlternativePrintResponseCallback, pResponseUserData); // then release it
+	ExecuteLine(pStr, ClientID, Level, ((CResult *)pResult)->m_pfnPrintCallback, ((CResult *)pResult)->m_pPrintCallbackUserData);
 }
 
+void CConsole::ExecuteLine(const char *pStr, int ClientID, int Level, IConsole::FPrintCallback pfnPrintCallback, void *pPrintCallbackUserData)
+{
+	CConsole::ExecuteLineStroked(1, pStr, ClientID, Level, pfnPrintCallback, pPrintCallbackUserData); // press it
+	CConsole::ExecuteLineStroked(0, pStr, ClientID, Level, pfnPrintCallback, pPrintCallbackUserData); // then release it
+}
 
-void CConsole::ExecuteFile(const char *pFilename, FPrintCallback pfnAlternativePrintCallback, void *pUserData, FPrintCallback pfnAlternativePrintResponseCallback, void *pResponseUserData, int Level)
+void CConsole::ExecuteFile(const char *pFileName, int ClientID, int Level, IConsole::IResult *pResult)
+{
+	ExecuteFile(pFileName, ClientID, Level, ((CResult *)pResult)->m_pfnPrintCallback, ((CResult *)pResult)->m_pPrintCallbackUserData);
+}
+
+void CConsole::ExecuteFile(const char *pFilename, int ClientID, int Level, IConsole::FPrintCallback pfnPrintCallback, void *pPrintCallbackUserData)
 {
 	// make sure that this isn't being executed already
 	for(CExecFile *pCur = m_pFirstExec; pCur; pCur = pCur->m_pPrev)
@@ -465,7 +455,7 @@ void CConsole::ExecuteFile(const char *pFilename, FPrintCallback pfnAlternativeP
 		m_pStorage = Kernel()->RequestInterface<IStorage>();
 	if(!m_pStorage)
 		return;
-		
+
 	// push this one to the stack
 	CExecFile ThisFile;
 	CExecFile *pPrev = m_pFirstExec;
@@ -475,44 +465,42 @@ void CConsole::ExecuteFile(const char *pFilename, FPrintCallback pfnAlternativeP
 
 	// exec the file
 	IOHANDLE File = m_pStorage->OpenFile(pFilename, IOFLAG_READ, IStorage::TYPE_ALL);
-	
+
+	CResult Result;
+	Result.SetPrintCallback(pfnPrintCallback, pPrintCallbackUserData);
+
 	char aBuf[256];
 	if(File)
 	{
 		char *pLine;
 		CLineReader lr;
-		
-		RegisterAlternativePrintCallback(pfnAlternativePrintCallback, pUserData);
+
 		str_format(aBuf, sizeof(aBuf), "executing '%s'", pFilename);
-		PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
+		Result.Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 		lr.Init(File);
-		ReleaseAlternativePrintCallback();
 
 		while((pLine = lr.Get()))
-			ExecuteLine(pLine, Level, -1, pfnAlternativePrintCallback, pUserData, pfnAlternativePrintResponseCallback, pResponseUserData);
+			ExecuteLine(pLine, ClientID, Level, pfnPrintCallback, pPrintCallbackUserData);
 
 		io_close(File);
 	}
 	else
 	{
-		RegisterAlternativePrintCallback(pfnAlternativePrintCallback, pUserData);
 		str_format(aBuf, sizeof(aBuf), "failed to open '%s'", pFilename);
-		PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
-		ReleaseAlternativePrintCallback();
+		Result.Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 	}
-	
+
 	m_pFirstExec = pPrev;
 }
 
 void CConsole::Con_Echo(IResult *pResult, void *pUserData, int ClientID)
 {
-	((CConsole*)pUserData)->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "Console", pResult->GetString(0));
+	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", pResult->GetString(0));
 }
 
 void CConsole::Con_Exec(IResult *pResult, void *pUserData, int ClientID)
 {
-	CConsole *pSelf = (CConsole *)pUserData;
-	pSelf->ExecuteFile(pResult->GetString(0), pSelf->m_pfnAlternativePrintCallback, pSelf->m_pAlternativePrintCallbackUserdata, pSelf->m_pfnAlternativePrintResponseCallback, pSelf->m_pAlternativePrintResponseCallbackUserdata);
+	((CConsole *)pUserData)->ExecuteFile(pResult->GetString(0), ClientID, 3, pResult);
 }
 
 struct CIntVariableData
@@ -539,7 +527,7 @@ static void IntVariableCommand(IConsole::IResult *pResult, void *pUserData, int 
 	if(pResult->NumArguments())
 	{
 		int Val = pResult->GetInteger(0);
-		
+
 		// do clamping
 		if(pData->m_Min != pData->m_Max)
 		{
@@ -553,13 +541,13 @@ static void IntVariableCommand(IConsole::IResult *pResult, void *pUserData, int 
 
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "%s changed to %d", pData->m_Name, *(pData->m_pVariable));
-		pData->m_pConsole->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+		pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 	}
 	else
 	{
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "%s is %d", pData->m_Name, *(pData->m_pVariable));
-		pData->m_pConsole->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+		pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 	}
 }
 
@@ -594,7 +582,7 @@ static void StrVariableCommand(IConsole::IResult *pResult, void *pUserData, int 
 	{
 		char aBuf[1024];
 		str_format(aBuf, sizeof(aBuf), "%s is '%s'", pData->m_Name, pData->m_pStr);
-		pData->m_pConsole->PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+		pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
 	}
 }
 
@@ -611,46 +599,38 @@ CConsole::CConsole(int FlagMask)
 	{
 		m_aCommandCount[i] = 0;
 	}
-	m_pPrintCallbackUserdata = 0;
+
 	m_pfnPrintCallback = 0;
-	m_pAlternativePrintCallbackUserdata = 0;
-	m_pfnAlternativePrintCallback = 0;
-	m_PrintUsed = 0;
-
-	m_pPrintResponseCallbackUserdata = 0;
-	m_pfnPrintResponseCallback = 0;
-	m_pAlternativePrintResponseCallbackUserdata = 0;
-	m_pfnAlternativePrintResponseCallback = 0;
-	m_PrintResponseUsed = 0;
-
+	m_pPrintCallbackUserData = 0;
+	
 	m_pfnClientOnlineCallback = 0;
 	m_pfnCompareClientsCallback = 0;
 	m_pClientOnlineUserdata = 0;
 	m_pCompareClientsUserdata = 0;
-	
+
 	m_pStorage = 0;
-	
+
 	// register some basic commands
 	Register("echo", "r", CFGFLAG_SERVER|CFGFLAG_CLIENT, Con_Echo, this, "Echo the text", IConsole::CONSOLELEVEL_ADMIN);
 	Register("exec", "r", CFGFLAG_SERVER|CFGFLAG_CLIENT, Con_Exec, this, "Execute the specified file", IConsole::CONSOLELEVEL_ADMIN);
-	
+
 	// TODO: this should disappear
 	#define MACRO_CONFIG_INT(Name,ScriptName,Def,Min,Max,Flags,Desc,Level) \
 	{ \
 		static CIntVariableData Data = { this, #ScriptName, &g_Config.m_##Name, Min, Max }; \
 		Register(#ScriptName, "?i", Flags, IntVariableCommand, &Data, Desc, Level); \
 	}
-	
+
 	#define MACRO_CONFIG_STR(Name,ScriptName,Len,Def,Flags,Desc,Level) \
 	{ \
 		static CStrVariableData Data = { this, #ScriptName, g_Config.m_##Name, Len }; \
 		Register(#ScriptName, "?r", Flags, StrVariableCommand, &Data, Desc, Level); \
 	}
 
-	#include "config_variables.h" 
+	#include "config_variables.h"
 
-	#undef MACRO_CONFIG_INT 
-	#undef MACRO_CONFIG_STR 	
+	#undef MACRO_CONFIG_INT
+	#undef MACRO_CONFIG_STR
 
 	m_Cheated = false;
 }
@@ -663,7 +643,7 @@ void CConsole::ParseArguments(int NumArgs, const char **ppArguments)
 		if(ppArguments[i][0] == '-' && ppArguments[i][1] == 'f' && ppArguments[i][2] == 0)
 		{
 			if(NumArgs - i > 1)
-				ExecuteFile(ppArguments[i+1], 0, 0, 0, 0, IConsole::CONSOLELEVEL_CONFIG);
+				ExecuteFile(ppArguments[i+1], -1, IConsole::CONSOLELEVEL_CONFIG, 0, 0);
 			i++;
 		}
 		else if(!str_comp("-s", ppArguments[i]) || !str_comp("--silent", ppArguments[i]))
@@ -674,12 +654,12 @@ void CConsole::ParseArguments(int NumArgs, const char **ppArguments)
 		else
 		{
 			// search arguments for overrides
-			ExecuteLine(ppArguments[i], IConsole::CONSOLELEVEL_CONFIG, -1);
+			ExecuteLine(ppArguments[i], -1, IConsole::CONSOLELEVEL_CONFIG, 0, 0);
 		}
 	}
 }
 
-void CConsole::Register(const char *pName, const char *pParams, 
+void CConsole::Register(const char *pName, const char *pParams,
 	int Flags, FCommandCallback pfnFunc, void *pUser, const char *pHelp, const int Level)
 {
 	CCommand *pCommand = (CCommand *)mem_alloc(sizeof(CCommand), sizeof(void*));
@@ -690,7 +670,6 @@ void CConsole::Register(const char *pName, const char *pParams,
 	pCommand->m_pParams = pParams;
 	pCommand->m_Flags = Flags;
 	pCommand->m_Level = Level;
-	
 	
 	pCommand->m_pNext = m_pFirstCommand;
 	m_pFirstCommand = pCommand;
@@ -706,17 +685,13 @@ void CConsole::Con_Chain(IResult *pResult, void *pUserData, int ClientID)
 void CConsole::Chain(const char *pName, FChainCommandCallback pfnChainFunc, void *pUser)
 {
 	CCommand *pCommand = FindCommand(pName, m_FlagMask);
-	
+
 	if(!pCommand)
 	{
-		RegisterAlternativePrintCallback(0, 0);
-		char aBuf[256];
-		str_format(aBuf, sizeof(aBuf), "failed to chain '%s'", pName);
-		Print(IConsole::OUTPUT_LEVEL_DEBUG, "console", aBuf);
-		ReleaseAlternativePrintCallback();
+		dbg_msg("console", "failed to chain '%s'", pName);
 		return;
 	}
-	
+
 	CChain *pChainInfo = (CChain *)mem_alloc(sizeof(CChain), sizeof(void*));
 
 	// store info
@@ -724,7 +699,7 @@ void CConsole::Chain(const char *pName, FChainCommandCallback pfnChainFunc, void
 	pChainInfo->m_pUserData = pUser;
 	pChainInfo->m_pfnCallback = pCommand->m_pfnCallback;
 	pChainInfo->m_pCallbackUserData = pCommand->m_pUserData;
-	
+
 	// chain
 	pCommand->m_pfnCallback = Con_Chain;
 	pCommand->m_pUserData = pChainInfo;
@@ -751,23 +726,6 @@ IConsole::CCommandInfo *CConsole::GetCommandInfo(const char *pName, int FlagMask
 extern IConsole *CreateConsole(int FlagMask) { return new CConsole(FlagMask); }
 
 // DDRace
-
-void CConsole::RegisterAlternativePrintCallback(FPrintCallback pfnAlternativePrintCallback, void *pAlternativeUserData)
-{
-	while (m_pfnAlternativePrintCallback != pfnAlternativePrintCallback && m_PrintUsed)
-		;	// wait for other threads to finish their commands
-		// TODO:DDRace:heinrich5991: implement this with LOCK
-
-	m_pfnAlternativePrintCallback = pfnAlternativePrintCallback;
-	m_pAlternativePrintCallbackUserdata = pAlternativeUserData;
-
-	m_PrintUsed++;
-}
-
-void CConsole::ReleaseAlternativePrintCallback()
-{
-	m_PrintUsed--;
-}
 
 void CConsole::RegisterClientOnlineCallback(FClientOnlineCallback pfnCallback, void *pUserData)
 {
@@ -797,55 +755,18 @@ bool CConsole::CompareClients(int ClientID, int Victim)
 	return m_pfnCompareClientsCallback(ClientID, Victim, m_pCompareClientsUserdata);
 }
 
-void CConsole::RegisterPrintResponseCallback(FPrintCallback pfnPrintResponseCallback, void *pUserData)
-{
-	m_pfnPrintResponseCallback = pfnPrintResponseCallback;
-	m_pPrintResponseCallbackUserdata = pUserData;
-}
-
-void CConsole::RegisterAlternativePrintResponseCallback(FPrintCallback pfnAlternativePrintResponseCallback, void *pAlternativeUserData)
-{
-	while (m_pfnAlternativePrintResponseCallback != pfnAlternativePrintResponseCallback && m_PrintResponseUsed)
-		;	// wait for other threads to finish their commands
-		// TODO:DDRace:heinrich5991: implement this with LOCK
-	m_pfnAlternativePrintResponseCallback = pfnAlternativePrintResponseCallback;
-	m_pAlternativePrintResponseCallbackUserdata = pAlternativeUserData;
-
-	m_PrintResponseUsed++;
-}
-
-void CConsole::ReleaseAlternativePrintResponseCallback()
-{
-  m_PrintResponseUsed--;
-}
-
-void CConsole::PrintResponse(int Level, const char *pFrom, const char *pStr)
-{
-	dbg_msg(pFrom ,"%s", pStr);
-	if (Level <= g_Config.m_ConsoleOutputLevel && m_pfnPrintResponseCallback)
-	{
-		char aBuf[1024];
-		str_format(aBuf, sizeof(aBuf), "[%s]: %s", pFrom, pStr);
-		if (!m_pfnAlternativePrintResponseCallback || m_PrintResponseUsed == 0)
-			m_pfnPrintResponseCallback(aBuf, m_pPrintResponseCallbackUserdata);
-  	else
-  		m_pfnAlternativePrintResponseCallback(aBuf, m_pAlternativePrintResponseCallbackUserdata);
-	}
-}
-
-void CConsole::List(int Level, int Flags)
+void CConsole::List(IConsole::IResult *pResult, int Level, int Flags)
 {
 	if (Level < 0)
 		Level = 0;
-	if (Level > 4)
-		Level = 4;
+	if (Level > 3)
+		Level = 3;
 	switch(Level)
 	{
-		case 4: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "command cmdlist is not allowed for config files"); return;
-		case 3: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist for admins ==="); break;
-		case 2: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist for mods ==="); break;
-		case 1: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist for helpers ==="); break;
-		default: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist ==="); break;
+		case 3: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "command cmdlist is not allowed for config files"); return;
+		case 2: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist for admins ==="); break;
+		case 1: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist for mods ==="); break;
+		default: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "=== cmdlist ==="); break;
 	}
 
 	char aBuf[50 + 1] = { 0 };
@@ -862,7 +783,7 @@ void CConsole::List(int Level, int Flags)
 				if(Length + CommandLength + 2 >= sizeof(aBuf) || aBuf[0] == 0)
 				{
 					if(aBuf[0])
-						PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
+						pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 					aBuf[0] = 0;
 					Length = CommandLength;
 					str_copy(aBuf, pCommand->m_pName, sizeof(aBuf));
@@ -879,13 +800,12 @@ void CConsole::List(int Level, int Flags)
 	}
 
 	if (aBuf[0])
-		PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+		pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", aBuf);
 
 	switch(Level)
 	{
-		case 3: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "see 'cmdlist 0,1,2' for more commands, which don't require admin rights"); break;
-		case 2: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "see 'cmdlist 0,1' for more commands, which don't require mod rights"); break;
-		case 1: PrintResponse(IConsole::OUTPUT_LEVEL_STANDARD, "console", "see 'cmdlist 0' for more commands, which don't require helper rights"); break;
+		case 2: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "see 'cmdlist 0,1' for more commands, which don't require admin rights"); break;
+		case 1: pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "see 'cmdlist 0' for more commands, which don't require mod rights"); break;
 		default: break;
 	}
 }
