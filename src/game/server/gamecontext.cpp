@@ -1,5 +1,8 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+
+#include <base/tl/sorted_array.h>
+
 #include <new>
 #include <base/math.h>
 #include <engine/shared/config.h>
@@ -16,7 +19,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <base/tl/sorted_array.h>
 #include <engine/server/server.h>
 #include "gamemodes/DDRace.h"
 #include "score.h"
@@ -1207,28 +1209,28 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			switch(pMsg->m_Emoticon)
 			{
 			case EMOTICON_EXCLAMATION:
-			case EMOTICON_QUESTION:
 			case EMOTICON_GHOST:
+			case EMOTICON_QUESTION:
+			case EMOTICON_WTF:
 					pChr->SetEmoteType(EMOTE_SURPRISE);
 					break;
 			case EMOTICON_DOTDOT:
-			case EMOTICON_ZZZ:
 			case EMOTICON_DROP:
+			case EMOTICON_ZZZ:
 					pChr->SetEmoteType(EMOTE_BLINK);
 					break;
-			case EMOTICON_MUSIC:
 			case EMOTICON_EYES:
 			case EMOTICON_HEARTS:
+			case EMOTICON_MUSIC:
 					pChr->SetEmoteType(EMOTE_HAPPY);
 					break;
-			case EMOTICON_SUSHI:
-			case EMOTICON_SORRY:
 			case EMOTICON_OOP:
+			case EMOTICON_SORRY:
+			case EMOTICON_SUSHI:
 					pChr->SetEmoteType(EMOTE_PAIN);
 					break;
-			case EMOTICON_WTF:
-			case EMOTICON_SPLATTEE:
 			case EMOTICON_DEVILTEE:
+			case EMOTICON_SPLATTEE:
 			case EMOTICON_ZOMG:
 					pChr->SetEmoteType(EMOTE_ANGRY);
 					break;

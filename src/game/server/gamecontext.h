@@ -201,24 +201,15 @@ private:
 
 	void ModifyWeapons(IConsole::IResult *pResult, int ClientID, int Victim, int Weapon, bool Remove);
 	void MoveCharacter(int ClientID, int Victim, int X, int Y, bool Raw = false);
-
-	static void ConTeleport(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConPhook(IConsole::IResult *pResult, void *pUserData, int ClientID);
-
-	static void ConJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConUnJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConFreeze(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConUnFreeze(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConGoLeft(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConGoRight(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConGoUp(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConGoDown(IConsole::IResult *pResult, void *pUserData, int ClientID);
-
 	static void ConMove(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMoveRaw(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConInvis(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConVis(IConsole::IResult *pResult, void *pUserData, int ClientID);
+
+	static void ConTeleport(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	static void ConCredits(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConInfo(IConsole::IResult *pResult, void *pUserData, int ClientID);
@@ -242,16 +233,14 @@ private:
 	static void ConEyeEmote(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConShowOthers(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
-	static void ConAsk(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConYes(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConNo(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConInvite(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConToggleStrict(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMute(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMuteID(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMuteIP(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConUnmute(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMutes(IConsole::IResult *pResult, void *pUserData, int ClientID);
+
+	static void ConJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConUnJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConRescue(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	enum
