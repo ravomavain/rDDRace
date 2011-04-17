@@ -12,7 +12,7 @@ CONSOLE_COMMAND("logout", "", CFGFLAG_SERVER, ConLogOut, this, "Logs out from th
 CONSOLE_COMMAND("moder", "v", CFGFLAG_SERVER, ConSetlvl1, this, "Authenticates player v to the level of 1", IConsole::CONSOLELEVEL_ADMIN)
 CONSOLE_COMMAND("admin", "v", CFGFLAG_SERVER, ConSetlvl2, this, "Authenticates player v to the level of 2", IConsole::CONSOLELEVEL_ADMIN)
 CONSOLE_COMMAND("tele", "i", CFGFLAG_SERVER|CMDFLAG_TEST, ConTeleport, this, "Teleports you to player i", IConsole::CONSOLELEVEL_USER)
-CONSOLE_COMMAND("teleto", "i", CFGFLAG_SERVER|CMDFLAG_CHEAT, ConTeleportTo, this, "Teleports player v to teleporter i", IConsole::CONSOLELEVEL_USER)
+CONSOLE_COMMAND("teleto", "i", CFGFLAG_SERVER|CMDFLAG_TEST, ConTeleportTo, this, "Teleports player v to teleporter i", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("addweapon", "i", CFGFLAG_SERVER|CMDFLAG_TEST, ConAddWeapon, this, "Gives weapon with id i to you (all = -1, hammer = 0, gun = 1, shotgun = 2, grenade = 3, rifle = 4, ninja = 5)", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("removeweapon", "i", CFGFLAG_SERVER|CMDFLAG_TEST, ConRemoveWeapon, this, "removes weapon with id i from you (all = -1, hammer = 0, gun = 1, shotgun = 2, grenade = 3, rifle = 4)", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("shotgun", "", CFGFLAG_SERVER|CMDFLAG_TEST, ConShotgun, this, "Gives a shotgun to you", IConsole::CONSOLELEVEL_USER)

@@ -954,9 +954,18 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				return;
 			}
 
-			str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to spectators (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), pReason);
-			str_format(aDesc, sizeof(aDesc), "move '%s' to spectators", Server()->ClientName(SpectateID));
-			str_format(aCmd, sizeof(aCmd), "set_team %d -1", SpectateID);
+			if(g_Config.m_SvVoteJail && ((CGameControllerDDRace*)m_pController)->m_TeleJails.size() > 0)
+			{
+				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to jail for %d seconds (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), g_Config.m_SvVoteJailTime, pReason);
+				str_format(aDesc, sizeof(aDesc), "move '%s' to Jail (%ds)", Server()->ClientName(SpectateID), g_Config.m_SvVoteJailTime);
+				str_format(aCmd, sizeof(aCmd), "jail %d %d", SpectateID, g_Config.m_SvVoteJailTime);
+			}
+			else
+			{
+				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to spectators (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), pReason);
+				str_format(aDesc, sizeof(aDesc), "move '%s' to spectators", Server()->ClientName(SpectateID));
+				str_format(aCmd, sizeof(aCmd), "set_team %d -1", SpectateID);
+			}
 		}
 
 		if(aCmd[0])

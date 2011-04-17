@@ -323,19 +323,22 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 			{
 				if(Seconds > 0)
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
+					if(ClientID < 0)
+						str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds", pServ->ClientName(Victim), Seconds);
+					else
+						str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
 					pChr->m_JailTime = Seconds * pServ->TickSpeed();
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else if(pChr->m_JailTime != -1)
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'", pServ->ClientName(Victim), pServ->ClientName(ClientID));
 					pChr->m_JailTime = -1;
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him.", pServ->ClientName(Victim), Victim);
+					str_format(aBuf, sizeof(aBuf), "'%s' ClientID=%d is already in jail until you unjail him", pServ->ClientName(Victim), Victim);
 					pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 				}
 			}
@@ -347,12 +350,15 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 				pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
 				if(Seconds >= 0)
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'.", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
+					if(ClientID < 0)
+						str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds", pServ->ClientName(Victim), Seconds);
+					else
+						str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for %ds by '%s'", pServ->ClientName(Victim), Seconds, pServ->ClientName(ClientID));
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 				else
 				{
-					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'.", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+					str_format(aBuf, sizeof(aBuf), "'%s' has been put in jail for the Eternity by '%s'", pServ->ClientName(Victim), pServ->ClientName(ClientID));
 					pSelf->SendChat(-1, CHAT_ALL, aBuf);
 				}
 			}
