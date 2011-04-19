@@ -494,6 +494,8 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 	bool InGameGroup = !find_linear(m_pEditor->m_Map.m_pGameGroup->m_lLayers.all(), this).empty();
 
 	if(m_pEditor->m_Map.m_pGameLayer == this || m_pEditor->m_Map.m_pTeleLayer == this || m_pEditor->m_Map.m_pSpeedupLayer == this || m_pEditor->m_Map.m_pFrontLayer == this || m_pEditor->m_Map.m_pSwitchLayer == this)
+		InGameGroup = false;
+	else
 	{
 		if(m_Image >= 0 && m_pEditor->m_Map.m_lImages[m_Image]->m_AutoMapper.IsLoaded())
 		{
@@ -508,8 +510,6 @@ int CLayerTiles::RenderProperties(CUIRect *pToolBox)
 				m_pEditor->m_Map.m_lImages[m_Image]->m_AutoMapper.Proceed(this, Result);
 		}
 	}
-	else
-		InGameGroup = false;
 
 	if(InGameGroup)
 	{
