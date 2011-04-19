@@ -346,7 +346,7 @@ void CGameContext::ConJail(IConsole::IResult *pResult, void *pUserData, int Clie
 			{
 				pChr->m_JailTime = Seconds == -1 ? Seconds : Seconds * pServ->TickSpeed();
 				pChr->m_JailPos = (pChr->m_SavedPos)?pChr->m_SavedPos:pChr->m_Pos;
-				pChr->m_JailLvl = (ClientID==Victim)?-1:(ClientID==-1)?4:pSelf->m_apPlayers[ClientID]->m_Authed;
+				pChr->m_JailLvl = (ClientID==Victim)?-1:(ClientID==-1)?-1:pSelf->m_apPlayers[ClientID]->m_Authed;
 				pChr->Core()->m_Pos = Controller->m_TeleJails[(!Num)?Num:rand() % Num];
 				if(Seconds >= 0)
 				{
