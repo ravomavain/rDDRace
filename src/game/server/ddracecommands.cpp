@@ -992,6 +992,8 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 					}
 				}
 				pChr->Core()->m_Pos = pChr->m_SavedPos;
+				if(g_Config.m_SvRescueUnfreeze)
+					pChr->m_FreezeTime=0;
 			}
 			else if(pChr->m_FreezeTime==0)
 			{
