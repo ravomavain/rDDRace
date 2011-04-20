@@ -709,7 +709,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 {
 	void *pRawMsg = m_NetObjHandler.SecureUnpackMsg(MsgID, pUnpacker);
 	CPlayer *pPlayer = m_apPlayers[ClientID];
-	CGameControllerDDRace* pController = (CGameControllerDDRace*)m_pController;
 	if(!pRawMsg)
 	{
 		char aBuf[256];
