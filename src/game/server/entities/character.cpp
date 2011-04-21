@@ -1660,3 +1660,16 @@ void CCharacter::SavePos()
 			m_SavedPos=m_Pos;
 	}
 }
+void CCharacter::MoveTo(vec2 Pos)
+{
+	m_Core.m_HookedPlayer = -1;
+	m_Core.m_HookState = HOOK_RETRACTED;
+	m_Core.m_TriggeredEvents |= COREEVENT_HOOK_RETRACT;
+	m_Core.m_HookState = HOOK_RETRACTED;
+	GameWorld()->ReleaseHooked(GetPlayer()->GetCID());
+	m_Core.m_Pos = Pos;
+	m_Pos = Pos;
+	m_PrevPos = Pos;
+	m_Core.m_HookPos = Pos;
+	m_Core.m_Vel = vec2(0,0);
+}
