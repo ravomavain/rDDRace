@@ -199,9 +199,11 @@ function build(settings)
 	engine_settings = settings:Copy()
 	server_settings = engine_settings:Copy()
 	client_settings = engine_settings:Copy()
+	cli_settings = engine_settings:Copy()
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
+		cli_settings.link.libs:Add("readline")
 		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
 			client_settings.link.frameworks:Add("AGL")
@@ -242,6 +244,11 @@ function build(settings)
 	client = Compile(client_settings, Collect("src/engine/client/*.cpp"))
 	server = Compile(server_settings, Collect("src/engine/server/*.cpp"))
 
+	cli = {}
+	if family == "unix" then
+		cli = Compile(cli_settings, Collect("src/engine/cli/*.cpp"))
+	end
+
 	versionserver = Compile(settings, Collect("src/versionsrv/*.cpp"))
 	masterserver = Compile(settings, Collect("src/mastersrv/*.cpp"))
 	banmaster = Compile(settings, Collect("src/banmaster/*.cpp"))
@@ -274,6 +281,12 @@ function build(settings)
 	server_exe = Link(server_settings, "rDDRace-Server", engine, server,
 		game_shared, game_server, zlib, server_link_other)
 
+	cli_exe = {}
+	if family == "unix" then
+		cli_exe = Link(cli_settings, "rDDRace-Cli", engine, cli,
+		game_shared, zlib)
+	end
+
 	serverlaunch = {}
 	if platform == "macosx" then
 		serverlaunch = Link(launcher_settings, "serverlaunch", server_osxlaunch)
@@ -290,6 +303,7 @@ function build(settings)
 
 	-- make targets
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
+	d = PseudoTarget("cli".."_"..settings.config_name, cli_exe)
 	if string.find(settings.config_name, "sql") then
 		s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch, server_sql_depends)
 	else
@@ -302,7 +316,7 @@ function build(settings)
 	b = PseudoTarget("banmaster".."_"..settings.config_name, banmaster_exe)
 	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
-	all = PseudoTarget(settings.config_name, c, s, v, m, b, t)
+	all = PseudoTarget(settings.config_name, c, d, s, v, m, b, t)
 	return all
 end
 
