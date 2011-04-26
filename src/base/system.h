@@ -1242,7 +1242,7 @@ int str_utf8_encode(char *ptr, int chr);
 		- The string is treated as zero-terminated utf8 string.
 */
 int str_utf8_check(const char *str);
-
+void hexdump(const void *pAddressIn, long  lSize);
 #ifdef __cplusplus
 }
 #endif
