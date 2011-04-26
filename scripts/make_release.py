@@ -85,6 +85,8 @@ if include_exe and not use_bundle:
 	shutil.copy(name+exe_ext, package_dir)
 	shutil.copy(name+"-Server"+exe_ext, package_dir)
 	shutil.copy(name+"-Server_sql"+exe_ext, package_dir)
+	if os.path.exists(name+"-Cli"+exe_ext):
+		shutil.copy(name+"-Cli"+exe_ext, package_dir)
 	
 if include_src:
 	for p in ["src", "scripts", "datasrc", "other", "objs"]:
