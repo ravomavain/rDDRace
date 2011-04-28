@@ -44,6 +44,7 @@ CONSOLE_COMMAND("pause", "", CFGFLAG_SERVER, ConTogglePause, this, "Toggles paus
 CONSOLE_COMMAND("rank", "?r", CFGFLAG_SERVER, ConRank, this, "Shows the rank of player with name r (your rank by default)", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("rules", "", CFGFLAG_SERVER, ConRules, this, "Shows the server rules", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("team", "?i", CFGFLAG_SERVER, ConJoinTeam, this, "Lets you join team i (shows your team if left blank)", IConsole::CONSOLELEVEL_USER)
+CONSOLE_COMMAND("force_team", "vi", CFGFLAG_SERVER, ConForceJoinTeam, this, "Force player v to join team i", IConsole::CONSOLELEVEL_MODERATOR)
 CONSOLE_COMMAND("top5", "?i", CFGFLAG_SERVER, ConTop5, this, "Shows five ranks of the ladder beginning with rank i (1 by default)", IConsole::CONSOLELEVEL_USER)
 CONSOLE_COMMAND("showothers", "?i", CFGFLAG_SERVER, ConShowOthers, this, "Whether to showplayers from other teams or not (off by default), optional i = 0 for off else for on", IConsole::CONSOLELEVEL_USER)
 

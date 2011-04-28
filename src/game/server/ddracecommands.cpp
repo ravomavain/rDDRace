@@ -765,6 +765,17 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int 
 	}
 }
 
+void CGameContext::ConForceJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	int Victim = pResult->GetVictim();
+	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
+	if(pChr)
+	{
+		pChr->Teams()->SetForceCharacterTeam(Victim, pResult->GetInteger(0));
+	}
+}
+
 void CGameContext::ConMe(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;

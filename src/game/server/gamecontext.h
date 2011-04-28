@@ -228,6 +228,7 @@ private:
 	static void ConRank(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConBroadTime(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void ConForceJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMe(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConToggleEyeEmote(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConToggleBroadcast(IConsole::IResult *pResult, void *pUserData, int ClientID);
