@@ -326,9 +326,12 @@ int io_seek(IOHANDLE io, int offset, int origin)
 		break;
 	case IOSEEK_END:
 		real_origin = SEEK_END;
+		break;
+	default:
+		return -1;
 	}
 
-	return fseek((FILE*)io, offset, origin);
+	return fseek((FILE*)io, offset, real_origin);
 }
 
 long int io_tell(IOHANDLE io)
@@ -413,6 +416,17 @@ void thread_sleep(int milliseconds)
 	usleep(milliseconds*1000);
 #elif defined(CONF_FAMILY_WINDOWS)
 	Sleep(milliseconds);
+#else
+	#error not implemented
+#endif
+}
+
+void thread_detach(void *thread)
+{
+#if defined(CONF_FAMILY_UNIX)
+	pthread_detach((pthread_t)(thread));
+#elif defined(CONF_FAMILY_WINDOWS)
+	CloseHandle(thread);
 #else
 	#error not implemented
 #endif

@@ -22,8 +22,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 	m_RespawnTick = Server()->Tick();
 	m_DieTick = Server()->Tick();
 	m_ScoreStartTick = Server()->Tick();
-	Character = 0;
-	this->m_ClientID = ClientID;
+	m_pCharacter = 0;
+	m_ClientID = ClientID;
 	m_Team = GameServer()->m_pController->ClampTeam(Team);
 	m_SpectatorID = SPEC_FREEVIEW;
 	m_LastActionTick = Server()->Tick();
@@ -50,8 +50,8 @@ CPlayer::CPlayer(CGameContext *pGameServer, int ClientID, int Team)
 
 CPlayer::~CPlayer()
 {
-	delete Character;
-	Character = 0;
+	delete m_pCharacter;
+	m_pCharacter = 0;
 }
 
 void CPlayer::Tick()
@@ -88,19 +88,19 @@ void CPlayer::Tick()
 		}
 	}
 
-	if(!Character && m_DieTick+Server()->TickSpeed()*3 <= Server()->Tick())
+	if(!m_pCharacter && m_DieTick+Server()->TickSpeed()*3 <= Server()->Tick())
 		m_Spawning = true;
 
-	if(Character)
+	if(m_pCharacter)
 	{
-		if(Character->IsAlive())
+		if(m_pCharacter->IsAlive())
 		{
-			m_ViewPos = Character->m_Pos;
+			m_ViewPos = m_pCharacter->m_Pos;
 		}
 		else
 		{
-			delete Character;
-			Character = 0;
+			delete m_pCharacter;
+			m_pCharacter = 0;
 		}
 	}
 	else if(m_Spawning && m_RespawnTick <= Server()->Tick())
@@ -200,23 +200,32 @@ void CPlayer::OnDisconnect(const char *pReason)
 
 void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 {
-	if(Character)
-		Character->OnPredictedInput(NewInput);
+	// skip the input if chat is active
+	if((m_PlayerFlags&PLAYERFLAG_CHATTING) && (NewInput->m_PlayerFlags&PLAYERFLAG_CHATTING))
+		return;
+
+	if(m_pCharacter)
+		m_pCharacter->OnPredictedInput(NewInput);
 }
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 {
+	// skip the input if chat is active
+	if((m_PlayerFlags&PLAYERFLAG_CHATTING) && (NewInput->m_PlayerFlags&PLAYERFLAG_CHATTING))
+		return;
+
 	m_PlayerFlags = NewInput->m_PlayerFlags;
 
-	if(Character)
-		Character->OnDirectInput(NewInput);
+	if(m_pCharacter)
+		m_pCharacter->OnDirectInput(NewInput);
 
-	if(!Character && m_Team != TEAM_SPECTATORS && (NewInput->m_Fire&1))
+	if(!m_pCharacter && m_Team != TEAM_SPECTATORS && (NewInput->m_Fire&1))
 		m_Spawning = true;
 
-	if(!Character && m_Team == TEAM_SPECTATORS && m_SpectatorID == SPEC_FREEVIEW)
+	if(!m_pCharacter && m_Team == TEAM_SPECTATORS && m_SpectatorID == SPEC_FREEVIEW)
 		m_ViewPos = vec2(NewInput->m_TargetX, NewInput->m_TargetY);
-	AfkTimer(NewInput->m_TargetX, NewInput->m_TargetY);
+	if (AfkTimer(NewInput->m_TargetX, NewInput->m_TargetY))
+		return; // we must return if kicked, as player struct is already deleted
 	// check for activity
 	if(NewInput->m_Direction || m_LatestActivity.m_TargetX != NewInput->m_TargetX ||
 		m_LatestActivity.m_TargetY != NewInput->m_TargetY || NewInput->m_Jump ||
@@ -230,18 +239,18 @@ void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 
 CCharacter *CPlayer::GetCharacter()
 {
-	if(Character && Character->IsAlive())
-		return Character;
+	if(m_pCharacter && m_pCharacter->IsAlive())
+		return m_pCharacter;
 	return 0;
 }
 
 void CPlayer::KillCharacter(int Weapon)
 {
-	if(Character)
+	if(m_pCharacter)
 	{
-		Character->Die(m_ClientID, Weapon);
-		delete Character;
-		Character = 0;
+		m_pCharacter->Die(m_ClientID, Weapon);
+		delete m_pCharacter;
+		m_pCharacter = 0;
 	}
 }
 
@@ -253,7 +262,7 @@ void CPlayer::Respawn()
 
 void CPlayer::SetTeam(int Team)
 {
-	if(Character && Character->IsJailed())
+	if(m_pCharacter && m_pCharacter->IsJailed())
 	{
 		GameServer()->SendChatTarget(m_ClientID,"You can't change of team in jail");
 		return;
@@ -293,8 +302,8 @@ void CPlayer::TryRespawn()
 {
 	if(m_PauseInfo.m_Respawn)
 	{
-		Character = new(m_ClientID) CCharacter(&GameServer()->m_World);
-		Character->Spawn(this, m_PauseInfo.m_Core.m_Pos);
+		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+		m_pCharacter->Spawn(this, m_PauseInfo.m_Core.m_Pos);
 		GameServer()->CreatePlayerSpawn(m_PauseInfo.m_Core.m_Pos, ((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.TeamMask((m_PauseInfo.m_Team > 0 && m_PauseInfo.m_Team < TEAM_SUPER) ? m_PauseInfo.m_Team : 0));
 		LoadCharacter();
 	}
@@ -306,45 +315,45 @@ void CPlayer::TryRespawn()
 			return;
 
 		m_Spawning = false;
-		Character = new(m_ClientID) CCharacter(&GameServer()->m_World);
-		Character->Spawn(this, SpawnPos);
+		m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
+		m_pCharacter->Spawn(this, SpawnPos);
 		GameServer()->CreatePlayerSpawn(SpawnPos);
 	}
 }
 
 void CPlayer::LoadCharacter()
 {
-	Character->SetCore(m_PauseInfo.m_Core);
+	m_pCharacter->SetCore(m_PauseInfo.m_Core);
 	if(g_Config.m_SvPauseTime)
-		Character->m_StartTime = Server()->Tick() - (m_PauseInfo.m_PauseTime - m_PauseInfo.m_StartTime);
+		m_pCharacter->m_StartTime = Server()->Tick() - (m_PauseInfo.m_PauseTime - m_PauseInfo.m_StartTime);
 	else
-		Character->m_StartTime = m_PauseInfo.m_StartTime;
-	Character->m_DDRaceState = m_PauseInfo.m_DDRaceState;
-	Character->m_RefreshTime = Server()->Tick();
+		m_pCharacter->m_StartTime = m_PauseInfo.m_StartTime;
+	m_pCharacter->m_DDRaceState = m_PauseInfo.m_DDRaceState;
+	m_pCharacter->m_RefreshTime = Server()->Tick();
 	for(int i = 0; i < NUM_WEAPONS; ++i)
 	{
 		if(m_PauseInfo.m_aHasWeapon[i])
 		{
 			if(!m_PauseInfo.m_FreezeTime)
-				Character->GiveWeapon(i, -1);
+				m_pCharacter->GiveWeapon(i, -1);
 			else
-				Character->GiveWeapon(i, 0);
+				m_pCharacter->GiveWeapon(i, 0);
 		}
 	}
-	Character->m_FreezeTime = m_PauseInfo.m_FreezeTime;
-	Character->m_JailTime = m_PauseInfo.m_JailTime;
-	Character->m_JailLvl = m_PauseInfo.m_JailLvl;
-	Character->SetLastAction(Server()->Tick());
-	Character->SetArmor(m_PauseInfo.m_Armor);
-	Character->m_LastMove = m_PauseInfo.m_LastMove;
-	Character->m_PrevPos = m_PauseInfo.m_PrevPos;
-	Character->m_SavedPos = m_PauseInfo.m_SavedPos;
-	Character->m_JailPos = m_PauseInfo.m_JailPos;
-	Character->SetActiveWeapon(m_PauseInfo.m_ActiveWeapon);
-	Character->SetLastWeapon(m_PauseInfo.m_LastWeapon);
-	Character->m_Super = m_PauseInfo.m_Super;
-	Character->m_DeepFreeze = m_PauseInfo.m_DeepFreeze;
-	Character->m_EndlessHook = m_PauseInfo.m_EndlessHook;
+	m_pCharacter->m_FreezeTime = m_PauseInfo.m_FreezeTime;
+	m_pCharacter->m_JailTime = m_PauseInfo.m_JailTime;
+	m_pCharacter->m_JailLvl = m_PauseInfo.m_JailLvl;
+	m_pCharacter->SetLastAction(Server()->Tick());
+	m_pCharacter->SetArmor(m_PauseInfo.m_Armor);
+	m_pCharacter->m_LastMove = m_PauseInfo.m_LastMove;
+	m_pCharacter->m_PrevPos = m_PauseInfo.m_PrevPos;
+	m_pCharacter->m_SavedPos = m_PauseInfo.m_SavedPos;
+	m_pCharacter->m_JailPos = m_PauseInfo.m_JailPos;
+	m_pCharacter->SetActiveWeapon(m_PauseInfo.m_ActiveWeapon);
+	m_pCharacter->SetLastWeapon(m_PauseInfo.m_LastWeapon);
+	m_pCharacter->m_Super = m_PauseInfo.m_Super;
+	m_pCharacter->m_DeepFreeze = m_PauseInfo.m_DeepFreeze;
+	m_pCharacter->m_EndlessHook = m_PauseInfo.m_EndlessHook;
 	((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.m_Core.Team(GetCID(), m_PauseInfo.m_Team);
 	m_PauseInfo.m_Respawn = false;
 	m_InfoSaved = false;
@@ -352,30 +361,30 @@ void CPlayer::LoadCharacter()
 
 void CPlayer::SaveCharacter()
 {
-	m_PauseInfo.m_Core = Character->GetCore();
-	m_PauseInfo.m_StartTime = Character->m_StartTime;
-	m_PauseInfo.m_DDRaceState = Character->m_DDRaceState;
+	m_PauseInfo.m_Core = m_pCharacter->GetCore();
+	m_PauseInfo.m_StartTime = m_pCharacter->m_StartTime;
+	m_PauseInfo.m_DDRaceState = m_pCharacter->m_DDRaceState;
 	for(int i = 0; i < WEAPON_NINJA; ++i)
-		m_PauseInfo.m_aHasWeapon[i] = Character->GetWeaponGot(i);
-	m_PauseInfo.m_FreezeTime=Character->m_FreezeTime;
-	m_PauseInfo.m_JailTime=Character->m_JailTime;
-	m_PauseInfo.m_JailLvl=Character->m_JailLvl;
-	m_PauseInfo.m_Armor = Character->GetArmor();
-	m_PauseInfo.m_LastMove = Character->m_LastMove;
-	m_PauseInfo.m_PrevPos = Character->m_PrevPos;
-	m_PauseInfo.m_SavedPos = Character->m_SavedPos;
-	m_PauseInfo.m_JailPos = Character->m_JailPos;
-	m_PauseInfo.m_ActiveWeapon = Character->GetActiveWeapon();
-	m_PauseInfo.m_LastWeapon = Character->GetLastWeapon();
-	m_PauseInfo.m_Super = Character->m_Super;
-	m_PauseInfo.m_DeepFreeze = Character->m_DeepFreeze;
-	m_PauseInfo.m_EndlessHook = Character->m_EndlessHook;
+		m_PauseInfo.m_aHasWeapon[i] = m_pCharacter->GetWeaponGot(i);
+	m_PauseInfo.m_FreezeTime=m_pCharacter->m_FreezeTime;
+	m_PauseInfo.m_JailTime=m_pCharacter->m_JailTime;
+	m_PauseInfo.m_JailLvl=m_pCharacter->m_JailLvl;
+	m_PauseInfo.m_Armor = m_pCharacter->GetArmor();
+	m_PauseInfo.m_LastMove = m_pCharacter->m_LastMove;
+	m_PauseInfo.m_PrevPos = m_pCharacter->m_PrevPos;
+	m_PauseInfo.m_SavedPos = m_pCharacter->m_SavedPos;
+	m_PauseInfo.m_JailPos = m_pCharacter->m_JailPos;
+	m_PauseInfo.m_ActiveWeapon = m_pCharacter->GetActiveWeapon();
+	m_PauseInfo.m_LastWeapon = m_pCharacter->GetLastWeapon();
+	m_PauseInfo.m_Super = m_pCharacter->m_Super;
+	m_PauseInfo.m_DeepFreeze = m_pCharacter->m_DeepFreeze;
+	m_PauseInfo.m_EndlessHook = m_pCharacter->m_EndlessHook;
 	m_PauseInfo.m_Team = ((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.m_Core.Team(GetCID());
 	m_PauseInfo.m_PauseTime = Server()->Tick();
-	//m_PauseInfo.m_RefreshTime = Character->m_RefreshTime;
+	//m_PauseInfo.m_RefreshTime = m_pCharacter->m_RefreshTime;
 }
 
-void CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
+bool CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 {
 	/*
 		afk timer (x, y = mouse coordinates)
@@ -383,12 +392,13 @@ void CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 		the player's position in the game world, because it can easily be bypassed by just locking a key.
 		Frozen players could be kicked as well, because they can't move.
 		It also works for spectators.
+		returns true if kicked
 	*/
 
 	if(m_Authed)
-		return; // don't kick admins
+		return false; // don't kick admins
 	if(g_Config.m_SvMaxAfkTime == 0)
-		return; // 0 = disabled
+		return false; // 0 = disabled
 
 	if(NewTargetX != m_LastTarget_x || NewTargetY != m_LastTarget_y)
 	{
@@ -428,6 +438,8 @@ void CPlayer::AfkTimer(int NewTargetX, int NewTargetY)
 		{
 			CServer* serv =	(CServer*)m_pGameServer->Server();
 			serv->Kick(m_ClientID,"Away from keyboard");
+			return true;
 		}
 	}
+	return false;
 }

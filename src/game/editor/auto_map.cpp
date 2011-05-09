@@ -1,5 +1,5 @@
-#include "ed_auto_map.h"
-#include "ed_editor.h"
+#include "auto_map.h"
+#include "editor.h"
 
 #include <stdio.h>	// sscanf
 

@@ -1,7 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-#ifndef GAME_EDITOR_ED_EDITOR_H
-#define GAME_EDITOR_ED_EDITOR_H
+#ifndef GAME_EDITOR_EDITOR_H
+#define GAME_EDITOR_EDITOR_H
 
 #include <base/system.h>
 #include <base/math.h>
@@ -21,7 +21,7 @@
 
 #include <game/client/ui.h>
 
-#include "ed_auto_map.h"
+#include "auto_map.h"
 
 typedef void (*INDEX_MODIFY_FUNC)(int *pIndex);
 
@@ -667,6 +667,7 @@ public:
 	float m_AnimateSpeed;
 
 	int m_ShowEnvelopeEditor;
+	bool m_ShowPicker;
 
 	int m_SelectedLayer;
 	int m_SelectedGroup;
