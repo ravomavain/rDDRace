@@ -172,6 +172,7 @@ public:
 	int m_JailTime;
 	int m_JailLvl;
 	vec2 m_JailPos;
+	int m_TeleCheckpoint;
 	int m_CpTick;
 	int m_CpActive;
 	float m_CpCurrent[25];
