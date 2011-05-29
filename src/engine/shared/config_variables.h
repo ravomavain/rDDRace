@@ -191,4 +191,6 @@ MACRO_CONFIG_INT(SvSpamMuteDuration, sv_spam_mute_duration, 60, 0, 3600 , CFGFLA
 // banmaster
 MACRO_CONFIG_INT(SvGlobalBantime, sv_global_ban_time, 60, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if the ban server reports it. 0 to disable", IConsole::CONSOLELEVEL_ADMIN)
 
+// CLI
+MACRO_CONFIG_INT(CliTeam, cli_team, -1, -1, 1, CFGFLAG_CLI, "Default team to join on connect", IConsole::CONSOLELEVEL_USER)
 #endif

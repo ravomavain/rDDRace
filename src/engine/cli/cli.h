@@ -9,6 +9,7 @@ class CCli : public ICli
 	IStorage *m_pStorage;
 
 	int m_RconAuthed;
+	char m_aCmdConnect[256];
 
 	// pinging
 	int64 m_PingStartTime;
@@ -33,6 +34,8 @@ public:
 	void SendReady();
 	void SendStartInfo();
 	void SendSwitchTeam(int Team);
+	void SendKill();
+	void SendSay(int Team, const char *pLine);
 
 	void DisconnectWithReason(const char *pReason);
 	void Disconnect();
@@ -61,7 +64,10 @@ public:
 	static void Con_Rcon(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void Con_RconAuth(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void Con_Team(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void Con_Kill(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void Con_State(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void Con_Say(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void Con_SayTeam(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	void RegisterCommands();
 };

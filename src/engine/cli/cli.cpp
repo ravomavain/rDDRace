@@ -24,6 +24,7 @@ CCli::CCli()
 {
 	m_pConsole = 0;
 	m_RconAuthed = 0;
+	m_aCmdConnect[0] = 0;
 	m_State = ICli::STATE_OFFLINE;
 }
 
@@ -93,6 +94,20 @@ void CCli::SendSwitchTeam(int Team)
 {
 	CMsgPacker Msg(NETMSGTYPE_CL_SETTEAM);
 	Msg.AddInt(Team);
+	SendMsg(&Msg, MSGFLAG_VITAL, 0);
+}
+
+void CCli::SendKill()
+{
+	CMsgPacker Msg(NETMSGTYPE_CL_KILL);
+	SendMsg(&Msg, MSGFLAG_VITAL, 0);
+}
+
+void CCli::SendSay(int Team, const char *pLine)
+{
+	CMsgPacker Msg(NETMSGTYPE_CL_SAY);
+	Msg.AddInt(Team);
+	Msg.AddString(pLine, -1);
 	SendMsg(&Msg, MSGFLAG_VITAL, 0);
 }
 
@@ -232,7 +247,7 @@ void CCli::ProcessServerPacket(CNetChunk *pPacket)
 		if(Msg == NETMSGTYPE_SV_READYTOENTER)
 		{
 			SendEnterGame();
-			SendSwitchTeam(TEAM_SPECTATORS);
+			SendSwitchTeam(g_Config.m_CliTeam);
 		}
 		else if(Msg == NETMSGTYPE_SV_MOTD)
 		{
@@ -372,7 +387,13 @@ void CCli::Run()
 	while(m_ConsoleJob.Status() != CJob::STATE_DONE)
 	{
 		PumpNetwork();
-		
+
+		if(m_aCmdConnect[0])
+		{
+			Connect(m_aCmdConnect);
+			m_aCmdConnect[0] = 0;
+		}
+
 		// be nice to the CPU
 		thread_sleep(1);
 	}
@@ -392,7 +413,7 @@ void CCli::InitInterfaces()
 void CCli::Con_Connect(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	CCli *pSelf = (CCli *)pUserData;
-	pSelf->Connect(pResult->GetString(0));
+	str_copy(pSelf->m_aCmdConnect, pResult->GetString(0), sizeof(pSelf->m_aCmdConnect));
 }
 
 void CCli::Con_Disconnect(IConsole::IResult *pResult, void *pUserData, int ClientID)
@@ -425,6 +446,22 @@ void CCli::Con_Rcon(IConsole::IResult *pResult, void *pUserData, int ClientID)
 void CCli::Con_Team(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	((CCli*)pUserData)->SendSwitchTeam(pResult->GetInteger(0));
+}
+
+void CCli::Con_Kill(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	((CCli*)pUserData)->SendKill();
+}
+
+
+void CCli::Con_Say(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	((CCli*)pUserData)->SendSay(0, pResult->GetString(0));
+}
+
+void CCli::Con_SayTeam(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	((CCli*)pUserData)->SendSay(1, pResult->GetString(0));
 }
 
 void CCli::Con_RconAuth(IConsole::IResult *pResult, void *pUserData, int ClientID)
@@ -472,6 +509,7 @@ void CCli::RegisterCommands()
 
 	
 	m_pConsole->Register("team", "i", CFGFLAG_CLI, Con_Team, this, "Switch team", IConsole::CONSOLELEVEL_USER);
+	m_pConsole->Register("kill", "", CFGFLAG_CLI, Con_Kill, this, "Kill yourself", IConsole::CONSOLELEVEL_USER);
 	m_pConsole->Register("quit", "", CFGFLAG_CLI|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", IConsole::CONSOLELEVEL_USER);
 	m_pConsole->Register("exit", "", CFGFLAG_CLI|CFGFLAG_STORE, Con_Quit, this, "Quit Teeworlds", IConsole::CONSOLELEVEL_USER);
 	m_pConsole->Register("connect", "s", CFGFLAG_CLI, Con_Connect, this, "Connect to the specified host/ip", IConsole::CONSOLELEVEL_USER);
@@ -480,6 +518,8 @@ void CCli::RegisterCommands()
 	m_pConsole->Register("rcon", "r", CFGFLAG_CLI, Con_Rcon, this, "Send specified command to rcon", IConsole::CONSOLELEVEL_USER);
 	m_pConsole->Register("rcon_auth", "s", CFGFLAG_CLI, Con_RconAuth, this, "Authenticate to rcon", IConsole::CONSOLELEVEL_USER);
 	m_pConsole->Register("state", "", CFGFLAG_CLI, Con_State, this, "Get cli state", IConsole::CONSOLELEVEL_USER);
+	m_pConsole->Register("say", "r", CFGFLAG_CLI, Con_Say, this, "Say in chat", IConsole::CONSOLELEVEL_USER);
+	m_pConsole->Register("say_team", "r", CFGFLAG_CLI, Con_SayTeam, this, "Say in team chat", IConsole::CONSOLELEVEL_USER);
 
 	// DDRace
 
