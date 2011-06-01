@@ -508,28 +508,6 @@ int CCollision::IsMover(int x, int y, int* Flags)
 		return 0;
 }
 
-int CCollision::IsCheckpoint(int Index)
-{
-	if(Index < 0)
-		return -1;
-
-	int z = m_pTiles[Index].m_Index;
-	if(z >= 35 && z <= 59)
-		return z-35;
-	return -1;
-}
-
-int CCollision::IsFCheckpoint(int Index)
-{
-	if(Index < 0 || !m_pFront)
-		return -1;
-
-	int z = m_pFront[Index].m_Index;
-	if(z >= 35 && z <= 59)
-		return z-35;
-	return -1;
-}
-
 vec2 CCollision::CpSpeed(int Index, int Flags)
 {
 	if(Index < 0)
@@ -976,4 +954,26 @@ int CCollision::IntersectAir(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pO
 	if(pOutBeforeCollision)
 		*pOutBeforeCollision = Pos1;
 	return 0;
+}
+
+int CCollision::IsCheckpoint(int Index)
+{
+	if(Index < 0)
+		return -1;
+
+	int z = m_pTiles[Index].m_Index;
+	if(z >= 35 && z <= 59)
+		return z-35;
+	return -1;
+}
+
+int CCollision::IsFCheckpoint(int Index)
+{
+	if(Index < 0 || !m_pFront)
+		return -1;
+
+	int z = m_pFront[Index].m_Index;
+	if(z >= 35 && z <= 59)
+		return z-35;
+	return -1;
 }
