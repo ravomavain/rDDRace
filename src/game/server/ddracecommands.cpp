@@ -933,7 +933,7 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 				}
 				if(g_Config.m_SvRescue == 1)
 				{
-					if(pChr->m_SavedPos && pChr->m_SavedPos != vec2(0,0))
+					if(pChr->m_SavedPos && !(pChr->m_SavedPos == vec2(0,0)))
 					{
 						pChr->MoveTo(pChr->m_SavedPos);
 						if(g_Config.m_SvRescueUnfreeze)
@@ -950,7 +950,7 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 					}
 					else
 						Controller->CanSpawn(pPlayer->GetTeam(), &RescuePos);
-					if(RescuePos != vec2(0,0))
+					if(!(RescuePos == vec2(0,0)))
 					{
 						pChr->MoveTo(RescuePos);
 						if(g_Config.m_SvRescueUnfreeze)
