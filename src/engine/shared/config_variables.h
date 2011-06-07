@@ -96,7 +96,6 @@ MACRO_CONFIG_INT(DbgResizable, dbg_resizable, 0, 0, 0, CFGFLAG_CLIENT, "Enables 
 // DDRace
 
 MACRO_CONFIG_STR(SvWelcome, sv_welcome, 64, "", CFGFLAG_SERVER, "Message that will be displayed to players who join the server", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_STR(SvBroadcast, sv_broadcast, 64, "rDDRace 0.6", CFGFLAG_SERVER, "The broadcasting message", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvReservedSlots, sv_reserved_slots, 0, 0, 16, CFGFLAG_SERVER, "The number of slots that are reserved for special players", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_STR(SvReservedSlotsPass, sv_reserved_slots_pass, 32, "", CFGFLAG_SERVER, "The password that is required to use a reserved slot", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_STR(SvRconPasswordAdmin, sv_admin_pass, 32, "", CFGFLAG_SERVER, "Remote console administrator password", IConsole::CONSOLELEVEL_ADMIN)
@@ -182,6 +181,9 @@ MACRO_CONFIG_INT(SvShowOthers, sv_show_others, 1, 0, 1, CFGFLAG_SERVER, "Whether
 MACRO_CONFIG_INT(SvMaxAfkTime, sv_max_afk_time, 0, 0, 9999, CFGFLAG_SERVER, "The time in seconds a player is allowed to be afk (0 = disabled)", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvPlasmaRange, sv_plasma_range, 700, 1, 99999, CFGFLAG_SERVER, "How far will the plasma gun track tees", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvPlasmaPerSec, sv_plasma_per_sec, 3, 0, 50, CFGFLAG_SERVER, "How many shots does the plasma gun fire per seconds", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_INT(SvVotePause, sv_vote_pause, 1, 0, 1, CFGFLAG_SERVER, "Allow voting to pause players (instead of moving to spectators)", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_INT(SvVotePauseTime, sv_vote_pause_time, 10, 0, 360, CFGFLAG_SERVER, "The time (in seconds) players have to wait in pause when paused by vote", IConsole::CONSOLELEVEL_ADMIN)
+
 
 // Rescue
 MACRO_CONFIG_INT(SvRescue, sv_rescue, 0, 0, 2, CFGFLAG_SERVER, "Rescue mode (0: disabled, 1: last grounded position, 2:last checkpoint)", IConsole::CONSOLELEVEL_ADMIN)

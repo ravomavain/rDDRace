@@ -285,7 +285,7 @@ void CGameContext::ConCredits(IConsole::IResult *pResult, void *pUserData, int C
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "This mod was originally created by \'3DA\'");
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Now it is maintained & re-coded by:");
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "\'[Egypt]GreYFoX@GTi\' and \'[BlackTee]den\'");
-	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Others Helping on the code: \'heinrich5991\', \'noother\', \'LemonFace\', \'<3 fisted <3\' & \'Trust o_0 Aeeeh ?!\'");
+	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Others Helping on the code: \'heinrich5991\', \'ravomavain\', \'Trust o_0 Aeeeh ?!\', \'noother\', \'<3 fisted <3\' & \'LemonFace\'");
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Documentation: Zeta-Hoernchen, Entities: Fisico");
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Code (in the past): \'3DA\' and \'Fluxid\'");
 	pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Please check the changelog on DDRace.info.");
@@ -475,6 +475,7 @@ void CGameContext::ConKill(IConsole::IResult *pResult, void *pUserData, int Clie
 void CGameContext::ConTogglePause(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
+	char aBuf[128];
 
 	CPlayer *pPlayer = pSelf->m_apPlayers[ClientID];
 	if(!pPlayer)
@@ -483,31 +484,74 @@ void CGameContext::ConTogglePause(IConsole::IResult *pResult, void *pUserData, i
 	if(g_Config.m_SvPauseable)
 	{
 		CCharacter* pChr = pPlayer->GetCharacter();
-		if(!pPlayer->GetTeam() && pChr && (!pChr->GetWeaponGot(WEAPON_NINJA) || pChr->m_FreezeTime) && pChr->IsGrounded() && pChr->m_Pos==pChr->m_PrevPos && !pChr->Team() && !pPlayer->m_InfoSaved)
+		if(!pPlayer->GetTeam() && pChr && (!pChr->GetWeaponGot(WEAPON_NINJA) || pChr->m_FreezeTime) && pChr->IsGrounded() && pChr->m_Pos==pChr->m_PrevPos && !pPlayer->m_InfoSaved)
 		{
 			if(pPlayer->m_LastSetTeam + pSelf->Server()->TickSpeed() * g_Config.m_SvPauseFrequency <= pSelf->Server()->Tick())
 			{
 				pPlayer->SaveCharacter();
-				pPlayer->SetTeam(TEAM_SPECTATORS);
 				pPlayer->m_InfoSaved = true;
+				pPlayer->SetTeam(TEAM_SPECTATORS);
 			}
 			else
 				pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can\'t pause that often.");
 		}
-		else if(pPlayer->GetTeam()==TEAM_SPECTATORS && pPlayer->m_InfoSaved)
+		else if(pPlayer->GetTeam()==TEAM_SPECTATORS && pPlayer->m_InfoSaved && pPlayer->m_ForcePauseTime == 0)
 		{
-			pPlayer->m_InfoSaved = false;
 			pPlayer->m_PauseInfo.m_Respawn = true;
 			pPlayer->SetTeam(TEAM_RED);
+			pPlayer->m_InfoSaved = false;
 			//pPlayer->LoadCharacter();//TODO:Check if this system Works
 		}
 		else if(pChr)
-			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", (pChr->Team())?"You can't pause while you are in a team":pChr->GetWeaponGot(WEAPON_NINJA)?"You can't use /pause while you are a ninja":(!pChr->IsGrounded())?"You can't use /pause while you are a in air":"You can't use /pause while you are moving");
+			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", pChr->GetWeaponGot(WEAPON_NINJA)?"You can't use /pause while you are a ninja":(!pChr->IsGrounded())?"You can't use /pause while you are a in air":"You can't use /pause while you are moving");
+		else if(pPlayer->m_ForcePauseTime > 0)
+		{
+			str_format(aBuf, sizeof(aBuf), "You have been force-paused. %ds left.", pPlayer->m_ForcePauseTime/pSelf->Server()->TickSpeed());
+			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
+		}
+		else if(pPlayer->m_ForcePauseTime < 0)
+		{
+			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You have been force-paused.");
+		}
 		else
 			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "No pause data saved.");
 	}
 	else
 		pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "Pause isn't allowed on this server.");
+}
+
+void CGameContext::ConForcePause(IConsole::IResult *pResult, void *pUserData, int ClientID)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+	CServer* pServ = (CServer*)pSelf->Server();
+	int Victim = pResult->GetVictim();
+	int Seconds = 0;
+	char aBuf[128];
+
+	if(pResult->NumArguments() > 0 && ClientID < 0)
+		Seconds = clamp(pResult->GetInteger(0), 0, 15);
+
+	CPlayer *pPlayer = pSelf->m_apPlayers[Victim];
+	if(!pPlayer || (!Seconds && ClientID >= 0))
+		return;
+
+	CCharacter* pChr = pPlayer->GetCharacter();
+	if(!pPlayer->GetTeam() && pChr && !pPlayer->m_InfoSaved && ClientID < 0)
+	{
+		pPlayer->SaveCharacter();
+		pPlayer->m_InfoSaved = true;
+		pPlayer->SetTeam(TEAM_SPECTATORS);
+		pPlayer->m_ForcePauseTime = Seconds*pServ->TickSpeed();
+	}
+	else
+	{
+		pPlayer->m_ForcePauseTime = Seconds*pServ->TickSpeed();
+	}
+	if(ClientID < 0)
+		str_format(aBuf, sizeof(aBuf), "'%s' has been force-paused for %d seconds", pServ->ClientName(Victim), Seconds);
+	else
+		str_format(aBuf, sizeof(aBuf), "Force-pause of '%s' have been removed by '%s'", pServ->ClientName(Victim), pServ->ClientName(ClientID));
+	pSelf->SendChat(-1, CHAT_ALL, aBuf);
 }
 
 void CGameContext::ConTop5(IConsole::IResult *pResult, void *pUserData, int ClientID)
@@ -637,13 +681,13 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int 
 	else
 	{
 		char aBuf[512];
-		if(pPlayer->GetCharacter() == 0)
+		if(!pPlayer->IsPlaying())
 		{
 			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", "You can't check your team while you are dead/a spectator.");
 		}
 		else
 		{
-			str_format(aBuf, sizeof(aBuf), "You are in team %d", pPlayer->GetCharacter()->Team());
+			str_format(aBuf, sizeof(aBuf), "You are in team %d", ((CGameControllerDDRace*)pSelf->m_pController)->m_Teams.m_Core.Team(ClientID));
 			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 		}
 	}
