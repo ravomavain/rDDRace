@@ -81,10 +81,6 @@ MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SE
 MACRO_CONFIG_INT(SvVoteJail, sv_vote_jail, 1, 0, 1, CFGFLAG_SERVER, "Allow voting to move players to jail (instead of moving to spectators)", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvVoteJailTime, sv_vote_jail_time, 60, 0, 3600, CFGFLAG_SERVER, "The time (in seconds) to jail a player if jailed by vote", IConsole::CONSOLELEVEL_ADMIN)
 
-MACRO_CONFIG_INT(SvRescue, sv_rescue, 0, 0, 1, CFGFLAG_SERVER, "Allow players to use /r", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(SvRescueTime, sv_rescue_time, 0, 0, 9999, CFGFLAG_SERVER, "Time between freeze and /r usage", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(SvRescueUnfreeze, sv_rescue_unfreeze, 0, 0, 1, CFGFLAG_SERVER, "Unfreeze immediately after rescue", IConsole::CONSOLELEVEL_ADMIN)
-
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
 	MACRO_CONFIG_INT(DbgDummies, dbg_dummies, 0, 0, 15, CFGFLAG_SERVER, "", IConsole::CONSOLELEVEL_ADMIN)

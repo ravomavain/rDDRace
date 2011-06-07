@@ -1551,7 +1551,7 @@ void CCharacter::DDRaceTick()
 		if (m_JailTime == 1)
 		{
 			m_Core.m_Pos = m_JailPos;
-			if(g_Config.m_SvRescue)
+			if(g_Config.m_SvRescue==1)
 					m_SavedPos = m_JailPos;
 			m_JailTime = 0;
 		}
@@ -1679,7 +1679,7 @@ void CCharacter::DDRaceInit()
 
 void CCharacter::SavePos()
 {
-	if(g_Config.m_SvRescue && m_Pos)
+	if(g_Config.m_SvRescue==1 && m_Pos)
 	{
 		if(!m_FreezeTime && IsGrounded() && m_Pos==m_PrevPos)
 			m_SavedPos=m_Pos;

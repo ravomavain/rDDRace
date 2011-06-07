@@ -980,6 +980,7 @@ void CGameContext::ConMutes(IConsole::IResult *pResult, void *pUserData, int Cli
 void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int ClientID)
 {
 	CGameContext *pSelf = (CGameContext *)pUserData;
+	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
 	CPlayer *pPlayer = pSelf->m_apPlayers[ClientID];
 	char aBuf[128];
 
@@ -988,9 +989,9 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
 	{
 		CCharacter* pChr = pPlayer->GetCharacter();
-		if(pChr && pChr->m_SavedPos && pChr->m_FreezeTime)
+		if(pChr && pChr->m_FreezeTime)
 		{
-			if(!(pChr->m_SavedPos == vec2(0,0)) && pChr->m_FreezeTime!=0)
+			if(pChr->m_FreezeTime!=0)
 			{
 				if(g_Config.m_SvRescueTime)
 				{
@@ -1001,11 +1002,34 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 						return;
 					}
 				}
-				pChr->MoveTo(pChr->m_SavedPos);
-				if(g_Config.m_SvRescueUnfreeze)
-					pChr->UnFreeze();
+				if(g_Config.m_SvRescue == 1)
+				{
+					if(pChr->m_SavedPos && pChr->m_SavedPos != vec2(0,0))
+					{
+						pChr->MoveTo(pChr->m_SavedPos);
+						if(g_Config.m_SvRescueUnfreeze)
+							pChr->UnFreeze();
+					}
+				}
+				else if(g_Config.m_SvRescue == 2)
+				{
+					vec2 RescuePos = vec2(0,0);
+					if(pChr->m_TeleCheckpoint && Controller->m_TeleCheckOuts[pChr->m_TeleCheckpoint-1].size())
+					{
+						int Num = Controller->m_TeleCheckOuts[pChr->m_TeleCheckpoint-1].size();
+						RescuePos = Controller->m_TeleCheckOuts[pChr->m_TeleCheckpoint-1][(!Num)?Num:rand() % Num];
+					}
+					else
+						Controller->CanSpawn(pPlayer->GetTeam(), &RescuePos);
+					if(RescuePos != vec2(0,0))
+					{
+						pChr->MoveTo(RescuePos);
+						if(g_Config.m_SvRescueUnfreeze)
+							pChr->UnFreeze();
+					}
+				}
 			}
-			else if(pChr->m_FreezeTime==0)
+			else
 			{
 				pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "rescue", "You must be freezed.");
 			}
