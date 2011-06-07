@@ -261,11 +261,6 @@ void CPlayer::Respawn()
 
 void CPlayer::SetTeam(int Team)
 {
-	if(m_pCharacter && m_pCharacter->IsJailed())
-	{
-		GameServer()->SendChatTarget(m_ClientID,"You can't change of team in jail");
-		return;
-	}
 	// clamp the team
 	Team = GameServer()->m_pController->ClampTeam(Team);
 	if(m_Team == Team)
@@ -341,14 +336,11 @@ void CPlayer::LoadCharacter()
 		}
 	}
 	m_pCharacter->m_FreezeTime = m_PauseInfo.m_FreezeTime;
-	m_pCharacter->m_JailTime = m_PauseInfo.m_JailTime;
-	m_pCharacter->m_JailLvl = m_PauseInfo.m_JailLvl;
 	m_pCharacter->SetLastAction(Server()->Tick());
 	m_pCharacter->SetArmor(m_PauseInfo.m_Armor);
 	m_pCharacter->m_LastMove = m_PauseInfo.m_LastMove;
 	m_pCharacter->m_PrevPos = m_PauseInfo.m_PrevPos;
 	m_pCharacter->m_SavedPos = m_PauseInfo.m_SavedPos;
-	m_pCharacter->m_JailPos = m_PauseInfo.m_JailPos;
 	m_pCharacter->SetActiveWeapon(m_PauseInfo.m_ActiveWeapon);
 	m_pCharacter->SetLastWeapon(m_PauseInfo.m_LastWeapon);
 	m_pCharacter->m_Super = m_PauseInfo.m_Super;
@@ -368,13 +360,10 @@ void CPlayer::SaveCharacter()
 	for(int i = 0; i < WEAPON_NINJA; ++i)
 		m_PauseInfo.m_aHasWeapon[i] = m_pCharacter->GetWeaponGot(i);
 	m_PauseInfo.m_FreezeTime=m_pCharacter->m_FreezeTime;
-	m_PauseInfo.m_JailTime=m_pCharacter->m_JailTime;
-	m_PauseInfo.m_JailLvl=m_pCharacter->m_JailLvl;
 	m_PauseInfo.m_Armor = m_pCharacter->GetArmor();
 	m_PauseInfo.m_LastMove = m_pCharacter->m_LastMove;
 	m_PauseInfo.m_PrevPos = m_pCharacter->m_PrevPos;
 	m_PauseInfo.m_SavedPos = m_pCharacter->m_SavedPos;
-	m_PauseInfo.m_JailPos = m_pCharacter->m_JailPos;
 	m_PauseInfo.m_ActiveWeapon = m_pCharacter->GetActiveWeapon();
 	m_PauseInfo.m_LastWeapon = m_pCharacter->GetLastWeapon();
 	m_PauseInfo.m_Super = m_pCharacter->m_Super;

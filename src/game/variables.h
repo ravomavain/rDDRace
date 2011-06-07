@@ -78,9 +78,6 @@ MACRO_CONFIG_INT(SvVoteKick, sv_vote_kick, 1, 0, 1, CFGFLAG_SERVER, "Allow votin
 MACRO_CONFIG_INT(SvVoteKickMin, sv_vote_kick_min, 0, 0, MAX_CLIENTS, CFGFLAG_SERVER, "Minimum number of players required to start a kick vote", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvVoteKickBantime, sv_vote_kick_bantime, 5, 0, 1440, CFGFLAG_SERVER, "The time to ban a player if kicked by vote. 0 makes it just use kick", IConsole::CONSOLELEVEL_ADMIN)
 
-MACRO_CONFIG_INT(SvVoteJail, sv_vote_jail, 1, 0, 1, CFGFLAG_SERVER, "Allow voting to move players to jail (instead of moving to spectators)", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(SvVoteJailTime, sv_vote_jail_time, 60, 0, 3600, CFGFLAG_SERVER, "The time (in seconds) to jail a player if jailed by vote", IConsole::CONSOLELEVEL_ADMIN)
-
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
 	MACRO_CONFIG_INT(DbgDummies, dbg_dummies, 0, 0, 15, CFGFLAG_SERVER, "", IConsole::CONSOLELEVEL_ADMIN)

@@ -43,10 +43,6 @@ void CGameControllerDDRace::InitTeleporter()
 			{
 				m_TeleCheckOuts[GameServer()->Collision()->TeleLayer()[i].m_Number-1].push_back(vec2(i % Width*32+16, i/Width*32+16));
 			}
-			else if(GameServer()->Collision()->TeleLayer()[i].m_Type == TILE_JAIL)
-			{
-				m_TeleJails.push_back(vec2(i % Width*32+16, i/Width*32+16));
-			}
 		}
 	}
 }

@@ -54,9 +54,6 @@ CONSOLE_COMMAND("muteip", "si", CFGFLAG_SERVER, ConMuteIP, this, "", IConsole::C
 CONSOLE_COMMAND("unmute", "v", CFGFLAG_SERVER, ConUnmute, this, "", IConsole::CONSOLELEVEL_MODERATOR);
 CONSOLE_COMMAND("mutes", "", CFGFLAG_SERVER, ConMutes, this, "", IConsole::CONSOLELEVEL_MODERATOR);
 
-CONSOLE_COMMAND("jail", "?vi", CFGFLAG_SERVER, ConJail, this, "Put player v in jail for i seconds (infinite by default)", IConsole::CONSOLELEVEL_MODERATOR)
-CONSOLE_COMMAND("unjail", "?v", CFGFLAG_SERVER, ConUnJail, this, "Put player v out of jail", IConsole::CONSOLELEVEL_MODERATOR)
-
 CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
 CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
 

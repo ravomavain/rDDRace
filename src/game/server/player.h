@@ -118,13 +118,10 @@ public:
 		int m_StartTime;
 		int m_DDRaceState;
 		int m_FreezeTime;
-		int m_JailTime;
-		int m_JailLvl;
 		int m_Armor;
 		int m_LastMove;
 		vec2 m_PrevPos;
 		vec2 m_SavedPos;
-		vec2 m_JailPos;
 		int m_ActiveWeapon;
 		int m_LastWeapon;
 		bool m_Respawn;

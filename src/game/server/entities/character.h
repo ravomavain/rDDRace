@@ -35,7 +35,6 @@ public:
 	virtual void Snap(int SnappingClient);
 
 	bool IsGrounded();
-	bool IsJailed();
 
 	void SetWeapon(int W);
 	void HandleWeaponSwitch();
@@ -169,9 +168,6 @@ public:
 	int m_RefreshTime;
 	vec2 m_PrevPos;
 	vec2 m_SavedPos;
-	int m_JailTime;
-	int m_JailLvl;
-	vec2 m_JailPos;
 	int m_TeleCheckpoint;
 	int m_CpTick;
 	int m_CpActive;

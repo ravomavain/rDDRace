@@ -20,7 +20,6 @@ public:
 
 	std::map < int , std::vector < vec2 > > m_TeleOuts;
 	std::map < int , std::vector < vec2 > > m_TeleCheckOuts;
-	std::vector < vec2 > m_TeleJails;
 
 	void InitTeleporter();
 	virtual void Tick();

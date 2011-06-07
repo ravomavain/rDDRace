@@ -942,19 +942,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				SendChatTarget(ClientID, "You cant move yourself");
 				return;
 			}
-
-			if(g_Config.m_SvVoteJail && ((CGameControllerDDRace*)m_pController)->m_TeleJails.size() > 0)
-			{
-				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to jail for %d seconds (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), g_Config.m_SvVoteJailTime, pReason);
-				str_format(aDesc, sizeof(aDesc), "move '%s' to Jail (%ds)", Server()->ClientName(SpectateID), g_Config.m_SvVoteJailTime);
-				str_format(aCmd, sizeof(aCmd), "jail %d %d", SpectateID, g_Config.m_SvVoteJailTime);
-			}
-			else
-			{
-				str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to spectators (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), pReason);
-				str_format(aDesc, sizeof(aDesc), "move '%s' to spectators", Server()->ClientName(SpectateID));
-				str_format(aCmd, sizeof(aCmd), "set_team %d -1", SpectateID);
-			}
+			str_format(aChatmsg, sizeof(aChatmsg), "'%s' called for vote to move '%s' to spectators (%s)", Server()->ClientName(ClientID), Server()->ClientName(SpectateID), pReason);
+			str_format(aDesc, sizeof(aDesc), "move '%s' to spectators", Server()->ClientName(SpectateID));
+			str_format(aCmd, sizeof(aCmd), "set_team %d -1", SpectateID);
 		}
 
 		if(aCmd[0])
@@ -1249,12 +1239,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		if(pPlayer->m_LastKill && pPlayer->m_LastKill+Server()->TickSpeed()*g_Config.m_SvKillDelay > Server()->Tick())
 			return;
-
-		if(pPlayer->GetCharacter() && pPlayer->GetCharacter()->IsJailed())
-		{
-			SendChatTarget(ClientID,"You can't kill yourself in jail");
-			return;
-		}
 
 		pPlayer->m_LastKill = Server()->Tick();
 		pPlayer->KillCharacter(WEAPON_SELF);

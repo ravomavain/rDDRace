@@ -241,8 +241,6 @@ private:
 	static void ConUnmute(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMutes(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
-	static void ConJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConUnJail(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConRescue(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	enum
