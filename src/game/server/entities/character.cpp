@@ -1430,7 +1430,10 @@ bool CCharacter::Freeze(int Seconds)
 	if (m_FreezeTick < Server()->Tick() - Server()->TickSpeed() || Seconds == -1)
 	{
 		if(m_FreezeTick == 0)
+		{
 			m_StartFreezeTick = Server()->Tick();
+			m_LastRescueMessage = 0;
+		}
 		for(int i = 0; i < NUM_WEAPONS; i++)
 			if(m_aWeapons[i].m_Got)
 			 {

@@ -926,8 +926,12 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData, int Cl
 				{
 					if(pSelf->Server()->Tick() - pChr->m_StartFreezeTick < g_Config.m_SvRescueTime*pSelf->Server()->TickSpeed())
 					{
-						str_format(aBuf, sizeof aBuf, "You must wait %d seconds before using rescue.", g_Config.m_SvRescueTime - (pSelf->Server()->Tick() - pChr->m_StartFreezeTick) / pSelf->Server()->TickSpeed());
-						pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "rescue", aBuf);
+						if(pSelf->Server()->Tick() > pChr->m_LastRescueMessage+pSelf->Server()->TickSpeed())
+						{
+							str_format(aBuf, sizeof aBuf, "You must wait %d seconds before using rescue.", g_Config.m_SvRescueTime - (pSelf->Server()->Tick() - pChr->m_StartFreezeTick) / pSelf->Server()->TickSpeed());
+							pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "rescue", aBuf);
+							pChr->m_LastRescueMessage = pSelf->Server()->Tick();
+						}
 						return;
 					}
 				}
