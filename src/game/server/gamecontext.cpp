@@ -160,12 +160,12 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 			l = 1-clamp((l-InnerRadius)/(Radius-InnerRadius), 0.0f, 1.0f);
 			float Dmg = 6 * l;
 			if((int)Dmg)
-				if((g_Config.m_SvHit||NoDamage) || Owner == apEnts[i]->GetPlayer()->GetCID())
+				if((GetPlayerChar(Owner) ? !(GetPlayerChar(Owner)->m_Hit&CCharacter::DISABLE_HIT_GRENADE) : g_Config.m_SvHit || NoDamage) || Owner == apEnts[i]->GetPlayer()->GetCID())
 				{
 					if(Owner != -1 && apEnts[i]->IsAlive() && !apEnts[i]->CanCollide(Owner)) continue;
 					if(Owner == -1 && ActivatedTeam != -1 && apEnts[i]->IsAlive() && apEnts[i]->Team() != ActivatedTeam) continue;
 					apEnts[i]->TakeDamage(ForceDir*Dmg*2, (int)Dmg, Owner, Weapon);
-					if(!g_Config.m_SvHit||NoDamage) break;
+					if(GetPlayerChar(Owner) ? GetPlayerChar(Owner)->m_Hit&CCharacter::DISABLE_HIT_GRENADE : !g_Config.m_SvHit || NoDamage) break;
 				}
 		}
 	//}
@@ -1909,7 +1909,7 @@ void CGameContext::OnSetAuthed(int ClientID, int Level)
 		m_apPlayers[ClientID]->m_Authed = Level;
 		char aBuf[512], aIP[20];
 		pServ->GetClientIP(ClientID, aIP, sizeof(aIP));
-		str_format(aBuf, sizeof(aBuf), "ban %s:0 %d Banned by vote", aIP, g_Config.m_SvVoteKickBantime);
+		str_format(aBuf, sizeof(aBuf), "ban %s %d Banned by vote", aIP, g_Config.m_SvVoteKickBantime);
 		if(!str_comp_nocase(m_aVoteCommand, aBuf) && Level > 0)
 		{
 			m_VoteEnforce = CGameContext::VOTE_ENFORCE_NO;

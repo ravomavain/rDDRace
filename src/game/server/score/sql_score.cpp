@@ -275,7 +275,7 @@ void CSqlScore::SaveScoreThread(void *pUser)
 		}
 
 		// disconnect from database
-		pData->m_pSqlData->Disconnect(); // TODO: DDRace: Check if an exception is caught will this still execute ?
+		pData->m_pSqlData->Disconnect(); //TODO:Check if an exception is caught will this still execute ?
 	}
 
 	delete pData;
@@ -384,7 +384,7 @@ void CSqlScore::ShowRankThread(void *pUser)
 		}
 
 		// disconnect from database
-		pData->m_pSqlData->Disconnect();// TODO: DDRace: Check if an exception is caught will this still execute ?
+		pData->m_pSqlData->Disconnect();//TODO:Check if an exception is caught will this still execute ?
 	}
 
 	delete pData;

@@ -36,10 +36,10 @@ MACRO_CONFIG_STR(ClVersionServer, cl_version_server, 100, "version.teeworlds.com
 
 MACRO_CONFIG_STR(ClLanguagefile, cl_languagefile, 255, "", CFGFLAG_CLIENT|CFGFLAG_SAVE, "What language file to use", IConsole::CONSOLELEVEL_USER)
 
-MACRO_CONFIG_INT(PlayerUseCustomColor, player_use_custom_color, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE|CFGFLAG_CLI, "Toggles usage of custom colors", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_INT(PlayerColorBody, player_color_body, 65408, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE|CFGFLAG_CLI, "Player body color", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_INT(PlayerColorFeet, player_color_feet, 65408, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE|CFGFLAG_CLI, "Player feet color", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_STR(PlayerSkin, player_skin, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE|CFGFLAG_CLI, "Player skin", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_INT(PlayerUseCustomColor, player_use_custom_color, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Toggles usage of custom colors", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_INT(PlayerColorBody, player_color_body, 65408, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Player body color", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_INT(PlayerColorFeet, player_color_feet, 65408, 0, 0xFFFFFF, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Player feet color", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_STR(PlayerSkin, player_skin, 24, "default", CFGFLAG_CLIENT|CFGFLAG_SAVE, "Player skin", IConsole::CONSOLELEVEL_USER)
 
 MACRO_CONFIG_INT(UiPage, ui_page, 5, 0, 10, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Interface page", IConsole::CONSOLELEVEL_USER)
 MACRO_CONFIG_INT(UiToolboxPage, ui_toolbox_page, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SAVE, "Toolbox page", IConsole::CONSOLELEVEL_USER)

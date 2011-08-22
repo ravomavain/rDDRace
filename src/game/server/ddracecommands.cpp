@@ -255,26 +255,9 @@ void CGameContext::ConTeleport(IConsole::IResult *pResult, void *pUserData, int 
 			CCharacter* pChr = pSelf->GetPlayerChar(ClientID);
 			if(pChr)
 			{
-				pChr->MoveTo(pSelf->m_apPlayers[TeleTo]->m_ViewPos);
+				pChr->Core()->m_Pos = pSelf->m_apPlayers[TeleTo]->m_ViewPos;
 				pChr->m_DDRaceState = DDRACE_CHEAT;
 			}
-		}
-	}
-}
-
-void CGameContext::ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID)
-{
-	CGameContext *pSelf = (CGameContext *)pUserData;
-	CGameControllerDDRace* Controller = (CGameControllerDDRace*)pSelf->m_pController;
-	int TeleNum = pResult->GetInteger(0)-1;
-	int Num = Controller->m_TeleOuts[TeleNum].size();
-	if(Num)
-	{
-		CCharacter* pChr = pSelf->GetPlayerChar(ClientID);
-		if(pChr)
-		{
-			pChr->MoveTo(Controller->m_TeleOuts[TeleNum][(!Num)?Num:rand() % Num]);
-			pChr->m_DDRaceState = DDRACE_CHEAT;
 		}
 	}
 }
@@ -690,17 +673,6 @@ void CGameContext::ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int 
 			str_format(aBuf, sizeof(aBuf), "You are in team %d", ((CGameControllerDDRace*)pSelf->m_pController)->m_Teams.m_Core.Team(ClientID));
 			pResult->Print(IConsole::OUTPUT_LEVEL_STANDARD, "info", aBuf);
 		}
-	}
-}
-
-void CGameContext::ConForceJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID)
-{
-	CGameContext *pSelf = (CGameContext *)pUserData;
-	int Victim = pResult->GetVictim();
-	CCharacter* pChr = pSelf->GetPlayerChar(Victim);
-	if(pChr)
-	{
-		pChr->Teams()->SetForceCharacterTeam(Victim, pResult->GetInteger(0));
 	}
 }
 

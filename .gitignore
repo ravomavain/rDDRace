@@ -28,8 +28,6 @@ buildlog.txt
 autoexec.cfg
 bam.exe
 *.bat
-*DDRace*
-*DDRace-Server*
 .cproject
 .project
 *.dtb
@@ -51,5 +49,8 @@ bam.exe
 .settings
 *.opensdf
 banmaster*
+
+*DDRace*
+*DDRace-Server*
 map_extract*
 twbuild*

@@ -9,7 +9,6 @@ config = NewConfig()
 config:Add(OptCCompiler("compiler"))
 config:Add(OptTestCompileC("stackprotector", "int main(){return 0;}", "-fstack-protector -fstack-protector-all"))
 config:Add(OptLibrary("zlib", "zlib.h", false))
-config:Add(OptLibrary("wavpack", "wavpack/wavpack.h", false))
 config:Add(SDL.OptFind("sdl", true))
 config:Add(FreeType.OptFind("freetype", true))
 config:Finalize("config.lua")
@@ -181,29 +180,18 @@ function build(settings)
 		zlib = Compile(settings, Collect("src/engine/external/zlib/*.c"))
 		settings.cc.includes:Add("src/engine/external/zlib")
 	end
-	if config.wavpack.value == true then
-		settings.link.libs:Add("wavpack")
-		if config.wavpack.include_path then
-			settings.cc.includes:Add(config.wavpack.include_path)
-		end
-			wavpack = {}
-		else
-			wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
-			settings.cc.includes:Add("src/engine/external/") --The header is wavpack/wavpack.h so include the external folder
-		end
 
 	-- build the small libraries
+	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 
 	-- build game components
 	engine_settings = settings:Copy()
 	server_settings = engine_settings:Copy()
 	client_settings = engine_settings:Copy()
-	cli_settings = engine_settings:Copy()
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
-		cli_settings.link.libs:Add("readline")
 		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
 			client_settings.link.frameworks:Add("AGL")
@@ -244,11 +232,6 @@ function build(settings)
 	client = Compile(client_settings, Collect("src/engine/client/*.cpp"))
 	server = Compile(server_settings, Collect("src/engine/server/*.cpp"))
 
-	cli = {}
-	if family == "unix" then
-		cli = Compile(cli_settings, Collect("src/engine/cli/*.cpp"))
-	end
-
 	versionserver = Compile(settings, Collect("src/versionsrv/*.cpp"))
 	masterserver = Compile(settings, Collect("src/mastersrv/*.cpp"))
 	banmaster = Compile(settings, Collect("src/banmaster/*.cpp"))
@@ -281,12 +264,6 @@ function build(settings)
 	server_exe = Link(server_settings, "rDDRace-Server", engine, server,
 		game_shared, game_server, zlib, server_link_other)
 
-	cli_exe = {}
-	if family == "unix" then
-		cli_exe = Link(cli_settings, "rDDRace-Cli", engine, cli,
-		game_shared, zlib)
-	end
-
 	serverlaunch = {}
 	if platform == "macosx" then
 		serverlaunch = Link(launcher_settings, "serverlaunch", server_osxlaunch)
@@ -303,7 +280,6 @@ function build(settings)
 
 	-- make targets
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
-	d = PseudoTarget("cli".."_"..settings.config_name, cli_exe)
 	if string.find(settings.config_name, "sql") then
 		s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch, server_sql_depends)
 	else
@@ -316,7 +292,7 @@ function build(settings)
 	b = PseudoTarget("banmaster".."_"..settings.config_name, banmaster_exe)
 	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
-	all = PseudoTarget(settings.config_name, c, d, s, v, m, b, t)
+	all = PseudoTarget(settings.config_name, c, s, v, m, b, t)
 	return all
 end
 
@@ -361,13 +337,13 @@ if platform == "macosx" then
 	debug_sql_settings_ppc.config_ext = "_sql_ppc_d"
 	debug_sql_settings_ppc.cc.flags:Add("-arch ppc")
 	debug_sql_settings_ppc.link.flags:Add("-arch ppc")
-	
+
 	release_settings_ppc = release_settings:Copy()
 	release_settings_ppc.config_name = "release_ppc"
 	release_settings_ppc.config_ext = "_ppc"
 	release_settings_ppc.cc.flags:Add("-arch ppc")
 	release_settings_ppc.link.flags:Add("-arch ppc")
-	
+
 	release_sql_settings_ppc = release_sql_settings:Copy()
 	release_sql_settings_ppc.config_name = "sql_release_ppc"
 	release_sql_settings_ppc.config_ext = "_sql_ppc"
@@ -388,13 +364,13 @@ if platform == "macosx" then
 	debug_sql_settings_x86.link.libs:Add("mysqlcppconn-static")
 	debug_sql_settings_x86.link.libs:Add("mysqlclient")
 	debug_sql_settings_x86.link.libpath:Add("other/mysql/mac/lib32")
-	
+
 	release_settings_x86 = release_settings:Copy()
 	release_settings_x86.config_name = "release_x86"
 	release_settings_x86.config_ext = "_x86"
 	release_settings_x86.cc.flags:Add("-arch i386")
 	release_settings_x86.link.flags:Add("-arch i386")
-	
+
 	release_sql_settings_x86 = release_sql_settings:Copy()
 	release_sql_settings_x86.config_name = "sql_release_x86"
 	release_sql_settings_x86.config_ext = "_sql_x86"
@@ -418,13 +394,13 @@ if platform == "macosx" then
 	debug_sql_settings_x64.link.libs:Add("mysqlcppconn-static")
 	debug_sql_settings_x64.link.libs:Add("mysqlclient")
 	debug_sql_settings_x64.link.libpath:Add("other/mysql/mac/lib64")
-	
+
 	release_settings_x64 = release_settings:Copy()
 	release_settings_x64.config_name = "release_x64"
 	release_settings_x64.config_ext = "_x64"
 	release_settings_x64.cc.flags:Add("-arch x86_64")
 	release_settings_x64.link.flags:Add("-arch x86_64")
-	
+
 	release_sql_settings_x64 = release_sql_settings:Copy()
 	release_sql_settings_x64.config_name = "sql_release_x64"
 	release_sql_settings_x64.config_ext = "_sql_x64"
@@ -446,7 +422,7 @@ if platform == "macosx" then
 	sql_ppc_r = build(release_sql_settings_ppc)
 	sql_x86_r = build(release_sql_settings_x86)
 	sql_x64_r = build(release_sql_settings_x64)
-	
+
 	if arch == "ia32" then
 		DefaultTarget("game_debug_x86")
 		PseudoTarget("release", ppc_r, x86_r)

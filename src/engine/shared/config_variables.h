@@ -8,14 +8,14 @@
 #include "././game/variables.h"
 
 
-MACRO_CONFIG_STR(PlayerName, player_name, 16, "nameless tee", CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_CLI, "Name of the player", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_STR(PlayerClan, player_clan, 12, "", CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_CLI, "Clan of the player", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_INT(PlayerCountry, player_country, -1, -1, 1000, CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_CLI, "Country of the player", IConsole::CONSOLELEVEL_USER)
-MACRO_CONFIG_STR(Password, password, 32, "", CFGFLAG_CLIENT|CFGFLAG_SERVER|CFGFLAG_CLI, "Password to the server", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_STR(Logfile, logfile, 128, "", CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_SERVER|CFGFLAG_CLI, "Filename to log all output to", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(ConsoleOutputLevel, console_output_level, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SERVER|CFGFLAG_CLI, "Adjusts the amount of information in the console", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_STR(PlayerName, player_name, 16, "nameless tee", CFGFLAG_SAVE|CFGFLAG_CLIENT, "Name of the player", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_STR(PlayerClan, player_clan, 12, "", CFGFLAG_SAVE|CFGFLAG_CLIENT, "Clan of the player", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_INT(PlayerCountry, player_country, -1, -1, 1000, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Country of the player", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_STR(Password, password, 32, "", CFGFLAG_CLIENT|CFGFLAG_SERVER, "Password to the server", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_STR(Logfile, logfile, 128, "", CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_SERVER, "Filename to log all output to", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_INT(ConsoleOutputLevel, console_output_level, 0, 0, 2, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Adjusts the amount of information in the console", IConsole::CONSOLELEVEL_ADMIN)
 
-MACRO_CONFIG_INT(ClCpuThrottle, cl_cpu_throttle, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT|CFGFLAG_CLI, "", IConsole::CONSOLELEVEL_USER)
+MACRO_CONFIG_INT(ClCpuThrottle, cl_cpu_throttle, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "", IConsole::CONSOLELEVEL_USER)
 MACRO_CONFIG_INT(ClEditor, cl_editor, 0, 0, 1, CFGFLAG_CLIENT, "", IConsole::CONSOLELEVEL_USER)
 
 MACRO_CONFIG_INT(ClAutoDemoRecord, cl_auto_demo_record, 0, 0, 1, CFGFLAG_SAVE|CFGFLAG_CLIENT, "Automatically record demos", IConsole::CONSOLELEVEL_USER)
@@ -84,7 +84,7 @@ MACRO_CONFIG_STR(SvRconPassword, sv_rcon_password, 32, "", CFGFLAG_SERVER, "Remo
 MACRO_CONFIG_INT(SvRconMaxTries, sv_rcon_max_tries, 20, 0, 100, CFGFLAG_SERVER, "Maximum number of tries for remote console authentication", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(SvRconBantime, sv_rcon_bantime, 5, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if remote console authentication fails. 0 makes it just use kick", IConsole::CONSOLELEVEL_ADMIN)
 
-MACRO_CONFIG_INT(Debug, debug, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SERVER|CFGFLAG_CLI, "Debug mode", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_INT(Debug, debug, 0, 0, 1, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Debug mode", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(DbgStress, dbg_stress, 0, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Stress systems", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(DbgStressNetwork, dbg_stress_network, 0, 0, 0, CFGFLAG_CLIENT|CFGFLAG_SERVER, "Stress network", IConsole::CONSOLELEVEL_ADMIN)
 MACRO_CONFIG_INT(DbgPref, dbg_pref, 0, 0, 1, CFGFLAG_SERVER, "Performance outputs", IConsole::CONSOLELEVEL_ADMIN)
@@ -198,6 +198,4 @@ MACRO_CONFIG_INT(SvSpamMuteDuration, sv_spam_mute_duration, 60, 0, 3600 , CFGFLA
 // banmaster
 MACRO_CONFIG_INT(SvGlobalBantime, sv_global_ban_time, 60, 0, 1440, CFGFLAG_SERVER, "The time a client gets banned if the ban server reports it. 0 to disable", IConsole::CONSOLELEVEL_ADMIN)
 
-// CLI
-MACRO_CONFIG_INT(CliTeam, cli_team, -1, -1, 1, CFGFLAG_CLI, "Default team to join on connect", IConsole::CONSOLELEVEL_USER)
 #endif

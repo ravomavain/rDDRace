@@ -21,7 +21,6 @@
 #include <game/generated/client_data.h>
 
 #include "editor.h"
-#include "auto_map.h"
 #include <game/client/lineinput.h>
 
 #include <game/localization.h>
@@ -397,10 +396,10 @@ int CEditor::DoButton_Editor(const void *pID, const char *pText, int Checked, co
 {
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, Checked), CUI::CORNER_ALL, 3.0f);
 	CUIRect NewRect = *pRect;
-	NewRect.y += NewRect.h/2.0f-5.0f;
-	float tw = min(TextRender()->TextWidth(0, 8.0f, pText, -1), NewRect.w);
+	NewRect.y += NewRect.h/2.0f-7.0f;
+	float tw = min(TextRender()->TextWidth(0, 10.0f, pText, -1), NewRect.w);
 	CTextCursor Cursor;
-	TextRender()->SetCursor(&Cursor, NewRect.x + NewRect.w/2-tw/2, NewRect.y - 1.0f, 8.0f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
+	TextRender()->SetCursor(&Cursor, NewRect.x + NewRect.w/2-tw/2, NewRect.y - 1.0f, 10.0f, TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
 	Cursor.m_LineWidth = NewRect.w;
 	TextRender()->TextEx(&Cursor, pText, -1);
 	return DoButton_Editor_Common(pID, pText, Checked, pRect, Flags, pToolTip);
@@ -446,8 +445,8 @@ int CEditor::DoButton_Tab(const void *pID, const char *pText, int Checked, const
 {
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, Checked), CUI::CORNER_T, 5.0f);
     CUIRect NewRect = *pRect;
-    NewRect.y += NewRect.h/2.0f-5.0f;
-    UI()->DoLabel(&NewRect, pText, 8, 0, -1);
+    NewRect.y += NewRect.h/2.0f-7.0f;
+    UI()->DoLabel(&NewRect, pText, 10, 0, -1);
 	return DoButton_Editor_Common(pID, pText, Checked, pRect, Flags, pToolTip);
 }
 
@@ -455,22 +454,22 @@ int CEditor::DoButton_Ex(const void *pID, const char *pText, int Checked, const 
 {
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, Checked), Corners, 3.0f);
     CUIRect NewRect = *pRect;
-    NewRect.y += NewRect.h/2.0f-5.0f;
-    UI()->DoLabel(&NewRect, pText, 8, 0, -1);
+    NewRect.y += NewRect.h/2.0f-7.0f;
+    UI()->DoLabel(&NewRect, pText, 10, 0, -1);
 	return DoButton_Editor_Common(pID, pText, Checked, pRect, Flags, pToolTip);
 }
 
 int CEditor::DoButton_ButtonInc(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip)
 {
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, Checked), CUI::CORNER_R, 3.0f);
-	UI()->DoLabel(pRect, pText?pText:"+", 8, 0, -1);
+	UI()->DoLabel(pRect, pText?pText:"+", 10, 0, -1);
 	return DoButton_Editor_Common(pID, pText, Checked, pRect, Flags, pToolTip);
 }
 
 int CEditor::DoButton_ButtonDec(const void *pID, const char *pText, int Checked, const CUIRect *pRect, int Flags, const char *pToolTip)
 {
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, Checked), CUI::CORNER_L, 3.0f);
-	UI()->DoLabel(pRect, pText?pText:"-", 8, 0, -1);
+	UI()->DoLabel(pRect, pText?pText:"-", 10, 0, -1);
 	return DoButton_Editor_Common(pID, pText, Checked, pRect, Flags, pToolTip);
 }
 
@@ -539,8 +538,8 @@ int CEditor::UiDoValueSelector(void *pID, CUIRect *pRect, const char *pLabel, in
 	char aBuf[128];
 	str_format(aBuf, sizeof(aBuf),"%s %d", pLabel, Current);
 	RenderTools()->DrawUIRect(pRect, GetButtonColor(pID, 0), CUI::CORNER_ALL, 5.0f);
-    pRect->y += pRect->h/2.0f-5.0f;
-    UI()->DoLabel(pRect, aBuf, 8, 0, -1);
+    pRect->y += pRect->h/2.0f-7.0f;
+    UI()->DoLabel(pRect, aBuf, 10, 0, -1);
     
 	return Current;
 }
@@ -632,13 +631,11 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	CUIRect TB_Top, TB_Bottom;
 	CUIRect Button;
 	
-	ToolBar.VMargin(5.0f, &ToolBar);
-	
 	ToolBar.HSplitTop(ToolBar.h/2.0f, &TB_Top, &TB_Bottom);
 	
-	TB_Top.HMargin(2.0f, &TB_Top);
-	TB_Bottom.HMargin(2.0f, &TB_Bottom);
-	
+    TB_Top.HSplitBottom(2.5f, &TB_Top, 0);
+    TB_Bottom.HSplitTop(2.5f, 0, &TB_Bottom);
+
 	// ctrl+o to open
 	if(Input()->KeyDown('o') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL)))
 	{
@@ -665,7 +662,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	}
 
 	// detail button
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_HqButton = 0;
 	if(DoButton_Editor(&s_HqButton, "HD", m_ShowDetail, &Button, 0, "[ctrl+h] Toggle High Detail") ||
 		(Input()->KeyDown('h') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))))
@@ -676,7 +673,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
 
 	// animation button
-	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
 	static int s_AnimateButton = 0;
 	if(DoButton_Editor(&s_AnimateButton, "Anim", m_Animate, &Button, 0, "[ctrl+m] Toggle animation") ||
 		(Input()->KeyDown('m') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))))
@@ -688,7 +685,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
 
 	// proof button
-	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
 	static int s_ProofButton = 0;
 	if(DoButton_Editor(&s_ProofButton, "Proof", m_ProofBorders, &Button, 0, "[ctrl+p] Toggles proof borders. These borders represent what a player maximum can see.") ||
 		(Input()->KeyDown('p') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))))
@@ -699,7 +696,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Top.VSplitLeft(5.0f, 0, &TB_Top);
 
 	// tile info button
-	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(40.0f, &Button, &TB_Top);
 	static int s_TileInfoButton = 0;
 	if(DoButton_Editor(&s_TileInfoButton, "Info", m_ShowTileInfo, &Button, 0, "[ctrl+i] Show tile informations") ||
 		(Input()->KeyDown('i') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))))
@@ -710,12 +707,12 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Top.VSplitLeft(15.0f, 0, &TB_Top);
 
 	// zoom group
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_ZoomOutButton = 0;
 	if(DoButton_Ex(&s_ZoomOutButton, "ZO", 0, &Button, 0, "[NumPad-] Zoom out", CUI::CORNER_L) || Input()->KeyDown(KEY_KP_MINUS))
 		m_ZoomLevel += 50;
 
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_ZoomNormalButton = 0;
 	if(DoButton_Ex(&s_ZoomNormalButton, "1:1", 0, &Button, 0, "[NumPad*] Zoom to normal and remove editor offset", 0) || Input()->KeyDown(KEY_KP_MULTIPLY))
 	{
@@ -724,7 +721,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		m_ZoomLevel = 100;
 	}
 
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_ZoomInButton = 0;
 	if(DoButton_Ex(&s_ZoomInButton, "ZI", 0, &Button, 0, "[NumPad+] Zoom in", CUI::CORNER_R) || Input()->KeyDown(KEY_KP_PLUS))
 		m_ZoomLevel -= 50;
@@ -732,17 +729,17 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Top.VSplitLeft(10.0f, 0, &TB_Top);
 
 	// animation speed
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_AnimFasterButton = 0;
 	if(DoButton_Ex(&s_AnimFasterButton, "A+", 0, &Button, 0, "Increase animation speed", CUI::CORNER_L))
 		m_AnimateSpeed += 0.5f;
 
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_AnimNormalButton = 0;
 	if(DoButton_Ex(&s_AnimNormalButton, "1", 0, &Button, 0, "Normal animation speed", 0))
 		m_AnimateSpeed = 1.0f;
 
-	TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+	TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 	static int s_AnimSlowerButton = 0;
 	if(DoButton_Ex(&s_AnimSlowerButton, "A-", 0, &Button, 0, "Decrease animation speed", CUI::CORNER_R))
 	{
@@ -767,7 +764,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		int Enabled = m_Brush.IsEmpty()?-1:0;
 
 		// flip buttons
-		TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 		static int s_FlipXButton = 0;
 		if(DoButton_Ex(&s_FlipXButton, "X/X", Enabled, &Button, 0, "[N] Flip brush horizontal", CUI::CORNER_L) || Input()->KeyDown('n'))
 		{
@@ -775,7 +772,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 				m_Brush.m_lLayers[i]->BrushFlipX();
 		}
 
-		TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 		static int s_FlipyButton = 0;
 		if(DoButton_Ex(&s_FlipyButton, "Y/Y", Enabled, &Button, 0, "[M] Flip brush vertical", CUI::CORNER_R) || Input()->KeyDown('m'))
 		{
@@ -786,7 +783,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		// rotate buttons
 		TB_Top.VSplitLeft(15.0f, &Button, &TB_Top);
 
-		TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 		static int s_RotationAmount = 90;
 		bool TileLayer = false;
 		// check for tile layers in brush selection
@@ -800,7 +797,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 		s_RotationAmount = UiDoValueSelector(&s_RotationAmount, &Button, "", s_RotationAmount, TileLayer?90:1, 359, TileLayer?90:1, TileLayer?10.0f:2.0f, "Rotation of the brush in degrees. Use left mouse button to drag and change the value. Hold shift to be more precise.");
 
 		TB_Top.VSplitLeft(5.0f, &Button, &TB_Top);
-		TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 		static int s_CcwButton = 0;
 		if(DoButton_Ex(&s_CcwButton, "CCW", Enabled, &Button, 0, "[R] Rotates the brush counter clockwise", CUI::CORNER_L) || Input()->KeyDown('r'))
 		{
@@ -808,7 +805,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 				m_Brush.m_lLayers[i]->BrushRotate(-s_RotationAmount/360.0f*pi*2);
 		}
 
-		TB_Top.VSplitLeft(20.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(30.0f, &Button, &TB_Top);
 		static int s_CwButton = 0;
 		if(DoButton_Ex(&s_CwButton, "CW", Enabled, &Button, 0, "[T] Rotates the brush clockwise", CUI::CORNER_R) || Input()->KeyDown('t'))
 		{
@@ -821,7 +818,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	{
 		// do add button
 		TB_Top.VSplitLeft(10.0f, &Button, &TB_Top);
-		TB_Top.VSplitLeft(50.0f, &Button, &TB_Top);
+		TB_Top.VSplitLeft(60.0f, &Button, &TB_Top);
 		static int s_NewButton = 0;
 
 		CLayerQuads *pQLayer = (CLayerQuads *)GetSelectedLayerType(0, LAYERTYPE_QUADS);
@@ -848,7 +845,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
     
 	// tile manipulation
 	{
-		TB_Bottom.VSplitLeft(30.0f, &Button, &TB_Bottom);
+		TB_Bottom.VSplitLeft(40.0f, &Button, &TB_Bottom);
 		static int s_BorderBut = 0;
 		CLayerTiles *pT = (CLayerTiles *)GetSelectedLayerType(0, LAYERTYPE_TILES);
 
@@ -895,7 +892,7 @@ void CEditor::DoToolbar(CUIRect ToolBar)
 	TB_Bottom.VSplitLeft(5.0f, 0, &TB_Bottom);
 
 	// refocus button
-	TB_Bottom.VSplitLeft(40.0f, &Button, &TB_Bottom);
+	TB_Bottom.VSplitLeft(50.0f, &Button, &TB_Bottom);
 	static int s_RefocusButton = 0;
 	if(DoButton_Editor(&s_RefocusButton, "Refocus", m_WorldOffsetX&&m_WorldOffsetY?0:-1, &Button, 0, "[HOME] Restore map focus") || Input()->KeyDown(KEY_HOME))
 	{
@@ -1685,7 +1682,7 @@ int CEditor::DoProperties(CUIRect *pToolBox, CProperty *pProps, int *pIDs, int *
 		CUIRect Label, Shifter;
 		Slot.VSplitMid(&Label, &Shifter);
 		Shifter.HMargin(1.0f, &Shifter);
-		UI()->DoLabel(&Label, pProps[i].m_pName, 8.0f, -1, -1);
+		UI()->DoLabel(&Label, pProps[i].m_pName, 10.0f, -1, -1);
 
 		if(pProps[i].m_Type == PROPTYPE_INT_STEP)
 		{
@@ -1696,7 +1693,7 @@ int CEditor::DoProperties(CUIRect *pToolBox, CProperty *pProps, int *pIDs, int *
 			Shifter.VSplitLeft(10.0f, &Dec, &Shifter);
 			str_format(aBuf, sizeof(aBuf),"%d", pProps[i].m_Value);
 			RenderTools()->DrawUIRect(&Shifter, vec4(1,1,1,0.5f), 0, 0.0f);
-			UI()->DoLabel(&Shifter, aBuf, 8.0f, 0, -1);
+			UI()->DoLabel(&Shifter, aBuf, 10.0f, 0, -1);
 
 			if(DoButton_ButtonDec(&pIDs[i], 0, 0, &Dec, 0, "Decrease"))
 			{
@@ -1785,11 +1782,11 @@ int CEditor::DoProperties(CUIRect *pToolBox, CProperty *pProps, int *pIDs, int *
 			Left.VSplitLeft(10.0f, &Left, &Shifter);
 			Shifter.VSplitRight(10.0f, &Shifter, &Right);
 			RenderTools()->DrawUIRect(&Shifter, vec4(1,1,1,0.5f), 0, 0.0f);
-			UI()->DoLabel(&Shifter, "X", 8.0f, 0, -1);
+			UI()->DoLabel(&Shifter, "X", 10.0f, 0, -1);
 			Up.VSplitLeft(10.0f, &Up, &Shifter);
 			Shifter.VSplitRight(10.0f, &Shifter, &Down);
 			RenderTools()->DrawUIRect(&Shifter, vec4(1,1,1,0.5f), 0, 0.0f);
-			UI()->DoLabel(&Shifter, "Y", 8.0f, 0, -1);
+			UI()->DoLabel(&Shifter, "Y", 10.0f, 0, -1);
 			if(DoButton_ButtonDec(&pIDs[i], "-", 0, &Left, 0, "Left"))
 			{
 				*pNewVal = 1;
@@ -1870,7 +1867,7 @@ void CEditor::RenderLayers(CUIRect ToolBox, CUIRect ToolBar, CUIRect View)
 			{
 				LayersBox.HSplitTop(12.0f, &Slot, &LayersBox);
 				Slot.VSplitLeft(12, &VisibleToggle, &Slot);
-				if(DoButton_Ex(&m_Map.m_lGroups[g]->m_Visible, m_Map.m_lGroups[g]->m_Visible? "V":"H", 0, &VisibleToggle, 0, "Toggle group visibility", CUI::CORNER_L))
+				if(DoButton_Ex(&m_Map.m_lGroups[g]->m_Visible, m_Map.m_lGroups[g]->m_Visible?"V":"H", 0, &VisibleToggle, 0, "Toggle group visibility", CUI::CORNER_L))
 					m_Map.m_lGroups[g]->m_Visible = !m_Map.m_lGroups[g]->m_Visible;
 
 				Slot.VSplitRight(12.0f, &Slot, &SaveCheck);
@@ -1991,13 +1988,8 @@ void CEditor::AddImage(const char *pFileName, int StorageType, void *pUser)
 	CEditorImage *pImg = new CEditorImage(pEditor);
 	*pImg = ImgInfo;
 	pImg->m_TexID = pEditor->Graphics()->LoadTextureRaw(ImgInfo.m_Width, ImgInfo.m_Height, ImgInfo.m_Format, ImgInfo.m_pData, CImageInfo::FORMAT_AUTO, 0);
-	
-	// external by default
-	pImg->m_External = 1;
+	pImg->m_External = 1;	// external by default
 	str_copy(pImg->m_aName, aBuf, sizeof(pImg->m_aName));
-	
-	pImg->m_AutoMapper.Load(pImg->m_aName);
-	
 	pEditor->m_Map.m_lImages.add(pImg);
 	pEditor->SortImages();
 	if(pEditor->m_SelectedImage > -1 && pEditor->m_SelectedImage < pEditor->m_Map.m_lImages.size())
@@ -2530,22 +2522,23 @@ void CEditor::InvokeFileDialog(int StorageType, int FileType, const char *pTitle
 
 void CEditor::RenderModebar(CUIRect View)
 {
-	CUIRect LayerButton;
-	CUIRect ImagesButton;
-	
-	View.VMargin(2.0f, &View);
-	View.HMargin(3.0f, &View);
-	View.VSplitLeft((View.w-2.0f)/2.0f, &LayerButton, &ImagesButton);
-	
-	static int s_LayerButton = 0;
-	static int s_ImagesButton = 0;
-	
-	if(DoButton_Ex(&s_LayerButton, "Layers", m_Mode == MODE_LAYERS, &LayerButton, 0, "", CUI::CORNER_L))
-		m_Mode = MODE_LAYERS;
-	
-	if(DoButton_Ex(&s_ImagesButton, "Images", m_Mode == MODE_IMAGES, &ImagesButton, 0, "", CUI::CORNER_R))
-		m_Mode = MODE_IMAGES;
-		
+	CUIRect Button;
+
+	// mode buttons
+	{
+		View.VSplitLeft(65.0f, &Button, &View);
+		Button.HSplitTop(30.0f, 0, &Button);
+		static int s_Button = 0;
+		const char *pButName = m_Mode == MODE_LAYERS ? "Layers" : "Images";
+		if(DoButton_Tab(&s_Button, pButName, 0, &Button, 0, "Switch between images and layers managment."))
+		{
+		    if(m_Mode == MODE_LAYERS)
+                m_Mode = MODE_IMAGES;
+            else
+                m_Mode = MODE_LAYERS;
+		}
+	}
+
 	View.VSplitLeft(5.0f, 0, &View);
 }
 
@@ -3109,16 +3102,15 @@ void CEditor::Render()
 	// render checker
 	RenderBackground(View, ms_CheckerTexture, 32.0f, 1.0f);
 
-	CUIRect MenuBar, ModeBar, ToolBar, StatusBar, EnvelopeEditor, ToolBox;
+	CUIRect MenuBar, CModeBar, ToolBar, StatusBar, EnvelopeEditor, ToolBox;
 	m_ShowPicker = Input()->KeyPressed(KEY_SPACE) != 0 && m_Dialog == DIALOG_NONE;
 
 	if(m_GuiActive)
 	{
 
 		View.HSplitTop(16.0f, &MenuBar, &View);
-		View.HSplitTop(40.0f, &ToolBar, &View);
+		View.HSplitTop(53.0f, &ToolBar, &View);
 		View.VSplitLeft(100.0f, &ToolBox, &View);
-		ToolBox.HSplitTop(20.0f, &ModeBar, &ToolBox);
 		View.HSplitBottom(16.0f, &View, &StatusBar);
 
 		if(m_ShowEnvelopeEditor && !m_ShowPicker)
@@ -3139,16 +3131,15 @@ void CEditor::Render()
 	if(m_GuiActive)
 	{
 		float Brightness = 0.25f;
-		RenderBackground(MenuBar, ms_BackgroundTexture, 128.0f, 0);
+		RenderBackground(MenuBar, ms_BackgroundTexture, 128.0f, Brightness*0);
 		MenuBar.Margin(2.0f, &MenuBar);
 
 		RenderBackground(ToolBox, ms_BackgroundTexture, 128.0f, Brightness);
 		ToolBox.Margin(2.0f, &ToolBox);
-		
-		RenderBackground(ModeBar, ms_BackgroundTexture, 128.0f, 0);
 
 		RenderBackground(ToolBar, ms_BackgroundTexture, 128.0f, Brightness);
 		ToolBar.Margin(2.0f, &ToolBar);
+		ToolBar.VSplitLeft(100.0f, &CModeBar, &ToolBar);
 
 		RenderBackground(StatusBar, ms_BackgroundTexture, 128.0f, Brightness);
 		StatusBar.Margin(2.0f, &StatusBar);
@@ -3175,8 +3166,8 @@ void CEditor::Render()
 	if(m_GuiActive)
 	{
 		RenderMenubar(MenuBar);
-		RenderModebar(ModeBar);
-		
+
+		RenderModebar(CModeBar);
 		if(m_ShowEnvelopeEditor)
 			RenderEnvelopeEditor(EnvelopeEditor);
 	}

@@ -496,10 +496,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 				// copy image name
 				if(pName)
 					str_copy(pImg->m_aName, pName, 128);
-				
-				// load auto mapper file
-				pImg->m_AutoMapper.Load(pImg->m_aName);
-				
+
 				m_lImages.add(pImg);
 
 				// unload image
@@ -698,6 +695,16 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 								else if(((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type >= (ENTITY_ARMOR_1 + ENTITY_OFFSET) && ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type <= (ENTITY_DOOR + ENTITY_OFFSET))
 								{
 									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type;
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Flags = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Flags;
+								}
+								else if(((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type == TILE_HIT_START)
+								{
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = TILE_HIT_START;
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Flags = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Flags;
+								}
+								else if(((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Type == TILE_HIT_END)
+								{
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = TILE_HIT_END;
 									((CLayerTiles*)pTiles)->m_pTiles[i].m_Flags = ((CLayerSwitch*)pTiles)->m_pSwitchTile[i].m_Flags;
 								}
 							}

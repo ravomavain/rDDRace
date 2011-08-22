@@ -210,7 +210,6 @@ private:
 	static void ConMoveRaw(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	static void ConTeleport(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConTeleportTo(IConsole::IResult *pResult, void *pUserData, int ClientID);
 
 	static void ConCredits(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConInfo(IConsole::IResult *pResult, void *pUserData, int ClientID);
@@ -229,7 +228,6 @@ private:
 	static void ConRank(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConBroadTime(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void ConForceJoinTeam(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConMe(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConToggleEyeEmote(IConsole::IResult *pResult, void *pUserData, int ClientID);
 	static void ConToggleBroadcast(IConsole::IResult *pResult, void *pUserData, int ClientID);

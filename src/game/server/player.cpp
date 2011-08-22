@@ -212,6 +212,8 @@ void CPlayer::OnPredictedInput(CNetObj_PlayerInput *NewInput)
 
 void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 {
+	if (AfkTimer(NewInput->m_TargetX, NewInput->m_TargetY))
+		return; // we must return if kicked, as player struct is already deleted
 	// skip the input if chat is active
 	if((m_PlayerFlags&PLAYERFLAG_CHATTING) && (NewInput->m_PlayerFlags&PLAYERFLAG_CHATTING))
 		return;
@@ -226,8 +228,6 @@ void CPlayer::OnDirectInput(CNetObj_PlayerInput *NewInput)
 
 	if(!m_pCharacter && m_Team == TEAM_SPECTATORS && m_SpectatorID == SPEC_FREEVIEW)
 		m_ViewPos = vec2(NewInput->m_TargetX, NewInput->m_TargetY);
-	if (AfkTimer(NewInput->m_TargetX, NewInput->m_TargetY))
-		return; // we must return if kicked, as player struct is already deleted
 	// check for activity
 	if(NewInput->m_Direction || m_LatestActivity.m_TargetX != NewInput->m_TargetX ||
 		m_LatestActivity.m_TargetY != NewInput->m_TargetY || NewInput->m_Jump ||
@@ -359,6 +359,7 @@ void CPlayer::LoadCharacter()
 	m_pCharacter->m_EndlessHook = m_PauseInfo.m_EndlessHook;
 	m_pCharacter->m_TeleCheckpoint = m_PauseInfo.m_TeleCheckpoint;
 	m_pCharacter->m_CpActive = m_PauseInfo.m_CpActive;
+	m_pCharacter->m_Hit = m_PauseInfo.m_Hit;
 	for(int i = 0; i < NUM_CHECKPOINTS; i++)
 		m_pCharacter->m_CpCurrent[i] = m_PauseInfo.m_CpCurrent[i];
 	((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.m_Core.Team(GetCID(), m_PauseInfo.m_Team);
@@ -387,6 +388,7 @@ void CPlayer::SaveCharacter()
 	m_PauseInfo.m_PauseTime = Server()->Tick();
 	m_PauseInfo.m_TeleCheckpoint = m_pCharacter->m_TeleCheckpoint;
 	m_PauseInfo.m_CpActive = m_pCharacter->m_CpActive;
+	m_PauseInfo.m_Hit = m_pCharacter->m_Hit;
 	for(int i = 0; i < NUM_CHECKPOINTS; i++)
 		m_PauseInfo.m_CpCurrent[i] = m_pCharacter->m_CpCurrent[i];
 	//m_PauseInfo.m_RefreshTime = m_pCharacter->m_RefreshTime;

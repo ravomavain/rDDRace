@@ -20,21 +20,21 @@ int main(int argc, const char **argv)
 	}
 	IStorage *pStorage = CreateStorage("Teeworlds", argc, argv);
 	CDataFileReader DataFile;
-	
+
 	if(!pStorage) {
 		printf("Cannot get storage\n");
 		return -1;
 	}
-	
+
 	if(!DataFile.Open(pStorage, argv[1], IStorage::TYPE_ALL)) {
 		printf("Cannot read %s\n", argv[1]);
 		return -1;
 	}
-	
+
 	printf("Loading %s\n", argv[1]);
-	
+
 	png_init(0, 0);
-	
+
 	// load images
 	int start, num;
 	DataFile.GetType(MAPITEMTYPE_IMAGE, &start, &num);
@@ -49,21 +49,21 @@ int main(int argc, const char **argv)
 		else
 		{
 			printf("writing %s.png\n", pName);
-			
+
 			void *pData = DataFile.GetData(pImg->m_ImageData);
-				
+
 			char buf[255];
 #if defined(CONF_FAMILY_WINDOWS)
 			_snprintf(buf, sizeof(buf), "%s.png", pName);
 #else
 			snprintf(buf, sizeof(buf), "%s.png", pName);
 #endif
-			
+
 			png_t png;
 			png_open_file_write(&png, buf);
 			png_set_data(&png, pImg->m_Width, pImg->m_Height, 8, PNG_TRUECOLOR_ALPHA, (unsigned char*) pData);
 			png_close_file(&png);
-			
+
 			DataFile.UnloadData(pImg->m_ImageData);
 		}
 	}

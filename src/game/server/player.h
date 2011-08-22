@@ -134,6 +134,7 @@ public:
 		int m_TeleCheckpoint;
 		int m_CpActive;
 		float m_CpCurrent[25];
+		int m_Hit;
 	} m_PauseInfo;
 	int m_ForcePauseTime;
 	bool m_InfoSaved;
