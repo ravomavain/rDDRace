@@ -1,8 +1,5 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-
-#include <base/tl/array.h>
-
 #include <engine/client.h>
 #include <engine/console.h>
 #include <engine/graphics.h>
@@ -269,6 +266,9 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 		GItem.m_StartLayer = LayerCount;
 		GItem.m_NumLayers = 0;
 
+		// save group name
+		StrToInts(GItem.m_aName, sizeof(GItem.m_aName)/sizeof(int), pGroup->m_aName);
+
 		for(int l = 0; l < pGroup->m_lLayers.size(); l++)
 		{
 			if(!pGroup->m_lLayers[l]->m_SaveToMap)
@@ -281,32 +281,29 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 				pLayer->PrepareForSave();
 
 				CMapItemLayerTilemap Item;
-				Item.m_Version = 2;
+				Item.m_Version = 3;
 
 				Item.m_Layer.m_Flags = pLayer->m_Flags;
 				Item.m_Layer.m_Type = pLayer->m_Type;
 
-				Item.m_Color.r = pLayer->m_Color.r;
-				Item.m_Color.g = pLayer->m_Color.g;
-				Item.m_Color.b = pLayer->m_Color.b;
-				Item.m_Color.a = pLayer->m_Color.a;
-				Item.m_ColorEnv = -1; // not in use right now
-				Item.m_ColorEnvOffset = 0;
+				Item.m_Color = pLayer->m_Color;
+				Item.m_ColorEnv = pLayer->m_ColorEnv;
+				Item.m_ColorEnvOffset = pLayer->m_ColorEnvOffset;
 
 				Item.m_Width = pLayer->m_Width;
 				Item.m_Height = pLayer->m_Height;
-				//Item.m_Flags = pLayer->m_Game;
+				// Item.m_Flags = pLayer->m_Game ? TILESLAYERFLAG_GAME : 0;
 
 				if(pLayer->m_Tele)
-					Item.m_Flags = 2;
+					Item.m_Flags = TILESLAYERFLAG_TELE;
 				else if(pLayer->m_Speedup)
-					Item.m_Flags = 4;
+					Item.m_Flags = TILESLAYERFLAG_SPEEDUP;
 				else if(pLayer->m_Front)
-					Item.m_Flags = 8;
+					Item.m_Flags = TILESLAYERFLAG_FRONT;
 				else if(pLayer->m_Switch)
-					Item.m_Flags = 16;
+					Item.m_Flags = TILESLAYERFLAG_SWITCH;
 				else
-					Item.m_Flags = pLayer->m_Game;
+					Item.m_Flags = pLayer->m_Game ? TILESLAYERFLAG_GAME : 0;
 
 				Item.m_Image = pLayer->m_Image;
 				if(pLayer->m_Tele)
@@ -342,7 +339,11 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 					delete[] Tiles;
 				}
 				else
-					Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), pLayer->m_pTiles);
+				Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), pLayer->m_pTiles);
+
+				// save layer name
+				StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
+
 				df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
 
 				GItem.m_NumLayers++;
@@ -355,7 +356,7 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 				if(pLayer->m_lQuads.size())
 				{
 					CMapItemLayerQuads Item;
-					Item.m_Version = 1;
+					Item.m_Version = 2;
 					Item.m_Layer.m_Flags = pLayer->m_Flags;
 					Item.m_Layer.m_Type = pLayer->m_Type;
 					Item.m_Image = pLayer->m_Image;
@@ -363,6 +364,10 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 					// add the data
 					Item.m_NumQuads = pLayer->m_lQuads.size();
 					Item.m_Data = df.AddDataSwapped(pLayer->m_lQuads.size()*sizeof(CQuad), pLayer->m_lQuads.base_ptr());
+
+					// save layer name
+					StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
+
 					df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
 
 					// clean up
@@ -497,6 +502,9 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 				if(pName)
 					str_copy(pImg->m_aName, pName, 128);
 
+				// load auto mapper file
+				pImg->m_AutoMapper.Load(pImg->m_aName);
+
 				m_lImages.add(pImg);
 
 				// unload image
@@ -534,6 +542,10 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 					pGroup->m_ClipH = pGItem->m_ClipH;
 				}
 
+				// load group name
+				if(pGItem->m_Version >= 3)
+					IntsToStr(pGItem->m_aName, sizeof(pGroup->m_aName)/sizeof(int), pGroup->m_aName);
+
 				for(int l = 0; l < pGItem->m_NumLayers; l++)
 				{
 					CLayer *pLayer = 0;
@@ -546,29 +558,41 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						CMapItemLayerTilemap *pTilemapItem = (CMapItemLayerTilemap *)pLayerItem;
 						CLayerTiles *pTiles = 0;
 
-						if(pTilemapItem->m_Flags&1)
+						if(pTilemapItem->m_Flags&TILESLAYERFLAG_GAME)
 						{
 							pTiles = new CLayerGame(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							MakeGameLayer(pTiles);
 							MakeGameGroup(pGroup);
 						}
-						else if(pTilemapItem->m_Flags&2)
+						else if(pTilemapItem->m_Flags&TILESLAYERFLAG_TELE)
 						{
+							if(pTilemapItem->m_Version <= 2)
+								pTilemapItem->m_Tele = *((int*)(pTilemapItem) + 15);
+
 							pTiles = new CLayerTele(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							MakeTeleLayer(pTiles);
 						}
-						else if(pTilemapItem->m_Flags&4)
+						else if(pTilemapItem->m_Flags&TILESLAYERFLAG_SPEEDUP)
 						{
+							if(pTilemapItem->m_Version <= 2)
+								pTilemapItem->m_Speedup = *((int*)(pTilemapItem) + 16);
+
 							pTiles = new CLayerSpeedup(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							MakeSpeedupLayer(pTiles);
 						}
-						else if(pTilemapItem->m_Flags&8)
+						else if(pTilemapItem->m_Flags&TILESLAYERFLAG_FRONT)
 						{
+							if(pTilemapItem->m_Version <= 2)
+								pTilemapItem->m_Front = *((int*)(pTilemapItem) + 17);
+
 							pTiles = new CLayerFront(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							MakeFrontLayer(pTiles);
 						}
-						else if(pTilemapItem->m_Flags&16)
+						else if(pTilemapItem->m_Flags&TILESLAYERFLAG_SWITCH)
 						{
+							if(pTilemapItem->m_Version <= 2)
+								pTilemapItem->m_Switch = *((int*)(pTilemapItem) + 18);
+
 							pTiles = new CLayerSwitch(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							MakeSwitchLayer(pTiles);
 						}
@@ -576,10 +600,9 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						{
 							pTiles = new CLayerTiles(pTilemapItem->m_Width, pTilemapItem->m_Height);
 							pTiles->m_pEditor = m_pEditor;
-							pTiles->m_Color.r = pTilemapItem->m_Color.r;
-							pTiles->m_Color.g = pTilemapItem->m_Color.g;
-							pTiles->m_Color.b = pTilemapItem->m_Color.b;
-							pTiles->m_Color.a = pTilemapItem->m_Color.a;
+							pTiles->m_Color = pTilemapItem->m_Color;
+							pTiles->m_ColorEnv = pTilemapItem->m_ColorEnv;
+							pTiles->m_ColorEnvOffset = pTilemapItem->m_ColorEnvOffset;
 						}
 
 						pLayer = pTiles;
@@ -587,7 +610,11 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						pGroup->AddLayer(pTiles);
 						void *pData = DataFile.GetData(pTilemapItem->m_Data);
 						pTiles->m_Image = pTilemapItem->m_Image;
-						pTiles->m_Game = pTilemapItem->m_Flags&1;
+						pTiles->m_Game = pTilemapItem->m_Flags&TILESLAYERFLAG_GAME;
+
+						// load layer name
+						if(pTilemapItem->m_Version >= 3)
+							IntsToStr(pTilemapItem->m_aName, sizeof(pTiles->m_aName)/sizeof(int), pTiles->m_aName);
 
 						mem_copy(pTiles->m_pTiles, pData, pTiles->m_Width*pTiles->m_Height*sizeof(CTile));
 
@@ -720,6 +747,11 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						pQuads->m_Image = pQuadsItem->m_Image;
 						if(pQuads->m_Image < -1 || pQuads->m_Image >= m_lImages.size())
 							pQuads->m_Image = -1;
+
+						// load layer name
+						if(pQuadsItem->m_Version >= 2)
+							IntsToStr(pQuadsItem->m_aName, sizeof(pQuads->m_aName)/sizeof(int), pQuads->m_aName);
+
 						void *pData = DataFile.GetDataSwapped(pQuadsItem->m_Data);
 						pGroup->AddLayer(pQuads);
 						pQuads->m_lQuads.set_size(pQuadsItem->m_NumQuads);

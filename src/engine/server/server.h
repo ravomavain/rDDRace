@@ -14,6 +14,7 @@
 #include <engine/shared/console.h>
 #include <base/math.h>
 #include <engine/shared/mapchecker.h>
+#include <engine/shared/econ.h>
 
 class CSnapIDPool
 {
@@ -59,6 +60,15 @@ public:
 	class IConsole *Console() { return m_pConsole; }
 	class IStorage *Storage() { return m_pStorage; }
 
+	enum
+	{
+		AUTHED_NO=0,
+		AUTHED_MOD,
+		AUTHED_ADMIN,
+
+		MAX_RCONCMD_SEND=16,
+	};
+
 	class CClient
 	{
 	public:
@@ -103,6 +113,8 @@ public:
 		int m_Authed;
 		int m_AuthTries;
 
+		const IConsole::CCommandInfo *m_pRconCmdToSend;
+
 		void Reset();
 
 		// DDRace
@@ -116,6 +128,7 @@ public:
 	CSnapshotBuilder m_SnapshotBuilder;
 	CSnapIDPool m_IDPool;
 	CNetServer m_NetServer;
+	CEcon m_Econ;
 
 	IEngineMap *m_pMap;
 
@@ -124,6 +137,8 @@ public:
 	int m_RunServer;
 	int m_MapReload;
 	int m_RconClientID;
+	int m_RconAuthLevel;
+	int m_PrintCBIndex;
 
 	int64 m_Lastheartbeat;
 	//static NETADDR4 master_server;
@@ -148,13 +163,15 @@ public:
 
 	void Kick(int ClientID, const char *pReason);
 
+	void DemoRecorder_HandleAutoStart();
+
 	//int Tick()
 	int64 TickStartTime(int Tick);
 	//int TickSpeed()
 
 	int Init();
 
-	int IsAuthed(int ClientID);
+	bool IsAuthed(int ClientID);
 	int GetClientInfo(int ClientID, CClientInfo *pInfo);
 	void GetClientAddr(int ClientID, char *pAddrStr, int Size);
 	const char *ClientName(int ClientID);
@@ -175,6 +192,10 @@ public:
 	void SendRconLine(int ClientID, const char *pLine);
 	static void SendRconLineAuthed(const char *pLine, void *pUser);
 
+	void SendRconCmdAdd(const IConsole::CCommandInfo *pCommandInfo, int ClientID);
+	void SendRconCmdRem(const IConsole::CCommandInfo *pCommandInfo, int ClientID);
+	void UpdateClientRconCommands();
+
 	void ProcessClientPacket(CNetChunk *pPacket);
 
 	void SendServerInfo(NETADDR *pAddr, int Token);
@@ -182,7 +203,6 @@ public:
 
 	int BanAdd(NETADDR Addr, int Seconds, const char *pReason);
 	int BanRemove(NETADDR Addr);
-
 
 	void PumpNetwork();
 
@@ -192,17 +212,19 @@ public:
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
 	int Run();
 
-	static void ConKick(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConBan(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConUnban(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConBans(IConsole::IResult *pResult, void *pUser, int ClientID);
- 	static void ConStatus(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConShutdown(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConRecord(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConStopRecord(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConMapReload(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConKick(IConsole::IResult *pResult, void *pUser);
+	static void ConBan(IConsole::IResult *pResult, void *pUser);
+	static void ConUnban(IConsole::IResult *pResult, void *pUser);
+	static void ConBans(IConsole::IResult *pResult, void *pUser);
+ 	static void ConStatus(IConsole::IResult *pResult, void *pUser);
+	static void ConShutdown(IConsole::IResult *pResult, void *pUser);
+	static void ConRecord(IConsole::IResult *pResult, void *pUser);
+	static void ConStopRecord(IConsole::IResult *pResult, void *pUser);
+	static void ConMapReload(IConsole::IResult *pResult, void *pUser);
 	static void ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 	static void ConchainMaxclientsperipUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainModCommandUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
+	static void ConchainConsoleOutputLevelUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 	void RegisterCommands();
 
@@ -214,30 +236,14 @@ public:
 
 	// DDRace
 
-	virtual void SetClientAuthed(int ClientID, int Authed);
 	void GetClientAddr(int ClientID, NETADDR *pAddr);
-	static void SendRconResponse(const char *pLine, void *pUser);
 	int m_aPrevStates[MAX_CLIENTS];
-
-	struct RconResponseInfo
-	{
-		CServer *m_Server;
-		int m_ClientID;
-	};
-	void SetRconLevel(int ClientID, int Level);
-	void CheckPass(int ClientID, const char *pPw);
 	char *GetAnnouncementLine(char const *FileName);
 	unsigned m_AnnouncementLastLine;
-	void GetClientIP(int ClientID, char *pIPString, int Size);
-	NETADDR GetClientIP(int ClientID);
 
-	static bool CompareClients(int ClientID, int Victim, void *pUser);
-	static bool ClientOnline(int ClientID, void *pUser);
-	static void ConLogin(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConCmdList(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConAddBanmaster(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConBanmasters(IConsole::IResult *pResult, void *pUser, int ClientID);
-	static void ConClearBanmasters(IConsole::IResult *pResult, void *pUser, int ClientID);
+	static void ConAddBanmaster(IConsole::IResult *pResult, void *pUser);
+	static void ConBanmasters(IConsole::IResult *pResult, void *pUser);
+	static void ConClearBanmasters(IConsole::IResult *pResult, void *pUser);
 };
 
 #endif

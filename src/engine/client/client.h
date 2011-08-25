@@ -51,36 +51,6 @@ public:
 };
 
 
-class CFileCollection
-{
-	enum
-	{
-		MAX_ENTRIES=1000,
-		TIMESTAMP_LENGTH=20,	// _YYYY-MM-DD_HH-MM-SS
-	};
-
-	int64 m_aTimestamps[MAX_ENTRIES];
-	int m_NumTimestamps;
-	int m_MaxEntries;
-	char m_aFileDesc[128];
-	int m_FileDescLength;
-	char m_aFileExt[32];
-	int m_FileExtLength;
-	char m_aPath[512];
-	IStorage *m_pStorage;
-
-	bool IsFilenameValid(const char *pFilename);
-	int64 ExtractTimestamp(const char *pTimestring);
-	void BuildTimestring(int64 Timestamp, char *pTimestring);
-
-public:
-	void Init(IStorage *pStorage, const char *pPath, const char *pFileDesc, const char *pFileExt, int MaxEntries);
-	void AddEntry(int64 Timestamp);
-
-	static int FilelistCallback(const char *pFilename, int IsDir, int StorageType, void *pUser);
-};
-
-
 class CClient : public IClient, public CDemoPlayer::IListner
 {
 	// needed interfaces
@@ -118,7 +88,6 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	float m_FrameTimeHigh;
 	int m_Frames;
 	NETADDR m_ServerAddress;
-	NETADDR m_BindAddr;
 	int m_WindowMustRefocus;
 	int m_SnapCrcErrors;
 	bool m_AutoScreenshotRecycle;
@@ -129,6 +98,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	int m_AckGameTick;
 	int m_CurrentRecvTick;
 	int m_RconAuthed;
+	int m_UseTempRconCommands;
 
 	// version-checking
 	char m_aVersionStr[10];
@@ -221,7 +191,8 @@ public:
 	void SendEnterGame();
 	void SendReady();
 
-	virtual bool RconAuthed();
+	virtual bool RconAuthed() { return m_RconAuthed != 0; }
+	virtual bool UseTempRconCommands() { return m_UseTempRconCommands != 0; }
 	void RconAuth(const char *pName, const char *pPassword);
 	virtual void Rcon(const char *pCmd);
 
@@ -296,19 +267,19 @@ public:
 	void Run();
 
 
-	static void Con_Connect(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Disconnect(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Quit(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Minimize(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Ping(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Screenshot(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Rcon(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_RconAuth(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_AddFavorite(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Play(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_Record(IConsole::IResult *pResult, void *pUserData, int ClientID);
-	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData, int ClientID);
+	static void Con_Connect(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Disconnect(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Quit(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Minimize(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Ping(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Screenshot(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Rcon(IConsole::IResult *pResult, void *pUserData);
+	static void Con_RconAuth(IConsole::IResult *pResult, void *pUserData);
+	static void Con_AddFavorite(IConsole::IResult *pResult, void *pUserData);
+	static void Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Play(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Record(IConsole::IResult *pResult, void *pUserData);
+	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainServerBrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 	void RegisterCommands();

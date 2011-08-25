@@ -41,7 +41,6 @@ protected:
 
 	float EvaluateSpawnPos(CSpawnEval *pEval, vec2 Pos);
 	void EvaluateSpawnType(CSpawnEval *pEval, int Type);
-	void FindFreeSpawn(CSpawnEval *pEval, int Type);
 	bool EvaluateSpawn(class CPlayer *pP, vec2 *pPos);
 
 	//void CycleMap();
@@ -71,8 +70,7 @@ public:
 	IGameController(class CGameContext *pGameServer);
 	virtual ~IGameController();
 
-	//void DoTeamScoreWincheck();
-	//void DoPlayerScoreWincheck();
+	// virtual void DoWincheck();
 
 	void DoWarmup(int Seconds);
 

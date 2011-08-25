@@ -17,7 +17,6 @@
 
 #include "scoreboard.h"
 
-#include <base/tl/string.h>
 #include <engine/serverbrowser.h>
 // TODO:DDRace:GreYFoX:Redo DDRace Scoreboard
 
@@ -26,7 +25,7 @@ CScoreboard::CScoreboard()
 	OnReset();
 }
 
-void CScoreboard::ConKeyScoreboard(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CScoreboard::ConKeyScoreboard(IConsole::IResult *pResult, void *pUserData)
 {
 	CScoreboard *pSelf = (CScoreboard *)pUserData;
 	CServerInfo Info;
@@ -48,7 +47,7 @@ void CScoreboard::OnRelease()
 
 void CScoreboard::OnConsoleInit()
 {
-	Console()->Register("+scoreboard", "", CFGFLAG_CLIENT, ConKeyScoreboard, this, "Show scoreboard", IConsole::CONSOLELEVEL_USER);
+	Console()->Register("+scoreboard", "", CFGFLAG_CLIENT, ConKeyScoreboard, this, "Show scoreboard");
 }
 
 void CScoreboard::RenderGoals(float x, float y, float w)
@@ -299,7 +298,7 @@ void CScoreboard::RenderScoreboard(float x, float y, float w, int Team, const ch
 		TextRender()->TextEx(&Cursor, m_pClient->m_aClients[pInfo->m_ClientID].m_aClan, -1);
 
 		// country flag
-		Graphics()->TextureSet(m_pClient->m_pCountryFlags->Get(m_pClient->m_aClients[pInfo->m_ClientID].m_Country)->m_Texture);
+		Graphics()->TextureSet(m_pClient->m_pCountryFlags->GetByCountryCode(m_pClient->m_aClients[pInfo->m_ClientID].m_Country)->m_Texture);
 		Graphics()->QuadsBegin();
 		Graphics()->SetColor(1.0f, 1.0f, 1.0f, 0.5f);
 		IGraphics::CQuadItem QuadItem(CountryOffset, y+(Spacing+TeeSizeMod*5.0f)/2.0f, CountryLength, LineHeight-Spacing-TeeSizeMod*5.0f);

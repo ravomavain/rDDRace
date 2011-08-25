@@ -1,8 +1,5 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
-
-#include <base/tl/array.h>
-
 #include <engine/engine.h>
 #include <engine/sound.h>
 #include <engine/shared/config.h>
@@ -68,8 +65,17 @@ void CSounds::OnInit()
 
 void CSounds::OnReset()
 {
-	Sound()->StopAll();
-	ClearQueue();
+	if(Client()->State() >= IClient::STATE_ONLINE)
+	{
+		Sound()->StopAll();
+		ClearQueue();
+	}
+}
+
+void CSounds::OnStateChange(int NewState, int OldState)
+{
+	if(NewState == IClient::STATE_ONLINE || NewState == IClient::STATE_DEMOPLAYBACK)
+		OnReset();
 }
 
 void CSounds::OnRender()
@@ -131,14 +137,14 @@ void CSounds::PlayAndRecord(int Chn, int SetId, float Vol, vec2 Pos)
 
 void CSounds::Play(int Chn, int SetId, float Vol, vec2 Pos)
 {
-	if(!g_Config.m_SndEnable || (Chn == CHN_MUSIC && !g_Config.m_SndMusic) || m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
+	if(!g_Config.m_SndEnable || !Sound()->IsSoundEnabled() || (Chn == CHN_MUSIC && !g_Config.m_SndMusic) || m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
 		return;
 
 	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
 
 	if(!pSet->m_NumSounds)
 		return;
-	
+
 	int Flags = 0;
 	if(Chn == CHN_MUSIC)
 		Flags = ISound::FLAG_LOOP;
@@ -164,9 +170,9 @@ void CSounds::Stop(int SetId)
 {
 	if(m_WaitForSoundJob || SetId < 0 || SetId >= g_pData->m_NumSounds)
 		return;
-	
+
 	CDataSoundset *pSet = &g_pData->m_aSounds[SetId];
-	
+
 	for(int i = 0; i < pSet->m_NumSounds; i++)
 		Sound()->Stop(pSet->m_aSounds[i].m_Id);
 }

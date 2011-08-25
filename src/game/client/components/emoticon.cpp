@@ -15,22 +15,22 @@ CEmoticon::CEmoticon()
 	OnReset();
 }
 
-void CEmoticon::ConKeyEmoticon(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CEmoticon::ConKeyEmoticon(IConsole::IResult *pResult, void *pUserData)
 {
 	CEmoticon *pSelf = (CEmoticon *)pUserData;
 	if(!pSelf->m_pClient->m_Snap.m_SpecInfo.m_Active && pSelf->Client()->State() != IClient::STATE_DEMOPLAYBACK)
 		pSelf->m_Active = pResult->GetInteger(0) != 0;
 }
 
-void CEmoticon::ConEmote(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CEmoticon::ConEmote(IConsole::IResult *pResult, void *pUserData)
 {
 	((CEmoticon *)pUserData)->Emote(pResult->GetInteger(0));
 }
 
 void CEmoticon::OnConsoleInit()
 {
-	Console()->Register("+emote", "", CFGFLAG_CLIENT, ConKeyEmoticon, this, "Open emote selector", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("emote", "i", CFGFLAG_CLIENT, ConEmote, this, "Use emote", IConsole::CONSOLELEVEL_USER);
+	Console()->Register("+emote", "", CFGFLAG_CLIENT, ConKeyEmoticon, this, "Open emote selector");
+	Console()->Register("emote", "i", CFGFLAG_CLIENT, ConEmote, this, "Use emote");
 }
 
 void CEmoticon::OnReset()
@@ -54,6 +54,7 @@ bool CEmoticon::OnMouseMove(float x, float y)
 	if(!m_Active)
 		return false;
 
+	UI()->ConvertMouseMove(&x, &y);
 	m_SelectorMouse += vec2(x,y);
 	return true;
 }
@@ -97,6 +98,13 @@ void CEmoticon::OnRender()
 	{
 		if(m_WasActive && m_SelectedEmote != -1)
 			Emote(m_SelectedEmote);
+		m_WasActive = false;
+		return;
+	}
+
+	if(m_pClient->m_Snap.m_SpecInfo.m_Active)
+	{
+		m_Active = false;
 		m_WasActive = false;
 		return;
 	}

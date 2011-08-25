@@ -50,11 +50,8 @@
 #include "components/spectator.h"
 #include "components/voting.h"
 
-#include <base/system.h>
 #include "components/race_demo.h"
 #include "components/ghost.h"
-#include <base/tl/sorted_array.h>
-
 CGameClient g_GameClient;
 
 // instanciate all systems
@@ -98,17 +95,6 @@ void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_N
 const char *CGameClient::Version() { return GAME_VERSION; }
 const char *CGameClient::NetVersion() { return GAME_NETVERSION; }
 const char *CGameClient::GetItemName(int Type) { return m_NetObjHandler.GetObjName(Type); }
-int CGameClient::GetCountryIndex(int Code)
-{
-	int Index = g_GameClient.m_pCountryFlags->Find(Code);
-	if(Index < 0)
-	{
-		Index = g_GameClient.m_pCountryFlags->Find(-1);
-		if(Index < 0)
-			Index = 0;
-	}
-	return Index;
-}
 
 void CGameClient::OnConsoleInit()
 {
@@ -198,24 +184,24 @@ void CGameClient::OnConsoleInit()
 	m_Input.Add(m_pBinds);
 
 	// add the some console commands
-	Console()->Register("team", "i", CFGFLAG_CLIENT, ConTeam, this, "Switch team", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself", IConsole::CONSOLELEVEL_USER);
+	Console()->Register("team", "i", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
+	Console()->Register("kill", "", CFGFLAG_CLIENT, ConKill, this, "Kill yourself");
 
 	// register server dummy commands for tab completion
-	Console()->Register("tune", "si", CFGFLAG_SERVER, ConServerDummy, 0, "Tune variable to value", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("tune_reset", "", CFGFLAG_SERVER, ConServerDummy, 0, "Reset tuning", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("tune_dump", "", CFGFLAG_SERVER, ConServerDummy, 0, "Dump tuning", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("change_map", "?r", CFGFLAG_SERVER, ConServerDummy, 0, "Change map", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("restart", "?i", CFGFLAG_SERVER, ConServerDummy, 0, "Restart in x seconds", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("broadcast", "r", CFGFLAG_SERVER, ConServerDummy, 0, "Broadcast message", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("say", "r", CFGFLAG_SERVER, ConServerDummy, 0, "Say in chat", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("set_team", "vi", CFGFLAG_SERVER, ConServerDummy, 0, "Set team of player to team", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("set_team_all", "i", CFGFLAG_SERVER, ConServerDummy, 0, "Set team of all players to team", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("add_vote", "sr", CFGFLAG_SERVER, ConServerDummy, 0, "Add a voting option", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("remove_vote", "s", CFGFLAG_SERVER, ConServerDummy, 0, "remove a voting option", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("force_vote", "ss?r", CFGFLAG_SERVER, ConServerDummy, 0, "Force a voting option", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("clear_votes", "", CFGFLAG_SERVER, ConServerDummy, 0, "Clears the voting options", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("vote", "r", CFGFLAG_SERVER, ConServerDummy, 0, "Force a vote to yes/no", IConsole::CONSOLELEVEL_USER);
+	Console()->Register("tune", "si", CFGFLAG_SERVER, 0, 0, "Tune variable to value");
+	Console()->Register("tune_reset", "", CFGFLAG_SERVER, 0, 0, "Reset tuning");
+	Console()->Register("tune_dump", "", CFGFLAG_SERVER, 0, 0, "Dump tuning");
+	Console()->Register("change_map", "?r", CFGFLAG_SERVER, 0, 0, "Change map");
+	Console()->Register("restart", "?i", CFGFLAG_SERVER, 0, 0, "Restart in x seconds");
+	Console()->Register("broadcast", "r", CFGFLAG_SERVER, 0, 0, "Broadcast message");
+	Console()->Register("say", "r", CFGFLAG_SERVER, 0, 0, "Say in chat");
+	Console()->Register("set_team", "ii?i", CFGFLAG_SERVER, 0, 0, "Set team of player to team");
+	Console()->Register("set_team_all", "i", CFGFLAG_SERVER, 0, 0, "Set team of all players to team");
+	Console()->Register("add_vote", "sr", CFGFLAG_SERVER, 0, 0, "Add a voting option");
+	Console()->Register("remove_vote", "s", CFGFLAG_SERVER, 0, 0, "remove a voting option");
+	Console()->Register("force_vote", "ss?r", CFGFLAG_SERVER, 0, 0, "Force a voting option");
+	Console()->Register("clear_votes", "", CFGFLAG_SERVER, 0, 0, "Clears the voting options");
+	Console()->Register("vote", "r", CFGFLAG_SERVER, 0, 0, "Force a vote to yes/no");
 
 
 	// propagate pointers
@@ -371,6 +357,9 @@ void CGameClient::OnReset()
 		m_All.m_paComponents[i]->OnReset();
 
 	m_DemoSpecID = SPEC_FREEVIEW;
+	m_FlagDropTick[TEAM_RED] = 0;
+	m_FlagDropTick[TEAM_BLUE] = 0;
+	m_Tuning = CTuningParams();
 
 	m_Teams.Reset();
 	m_DDRaceMsgSent = false;
@@ -749,7 +738,7 @@ void CGameClient::OnNewSnapshot()
 				int ClientID = Item.m_ID;
 				IntsToStr(&pInfo->m_Name0, 4, m_aClients[ClientID].m_aName);
 				IntsToStr(&pInfo->m_Clan0, 3, m_aClients[ClientID].m_aClan);
-				m_aClients[ClientID].m_Country = GetCountryIndex(pInfo->m_Country);
+				m_aClients[ClientID].m_Country = pInfo->m_Country;
 				IntsToStr(&pInfo->m_Skin0, 6, m_aClients[ClientID].m_aSkinName);
 
 				m_aClients[ClientID].m_UseCustomColor = pInfo->m_UseCustomColor;
@@ -847,6 +836,20 @@ void CGameClient::OnNewSnapshot()
 			{
 				m_Snap.m_pGameDataObj = (const CNetObj_GameData *)pData;
 				m_Snap.m_GameDataSnapID = Item.m_ID;
+				if(m_Snap.m_pGameDataObj->m_FlagCarrierRed == FLAG_TAKEN)
+				{
+					if(m_FlagDropTick[TEAM_RED] == 0)
+						m_FlagDropTick[TEAM_RED] = Client()->GameTick();
+				}
+				else if(m_FlagDropTick[TEAM_RED] != 0)
+						m_FlagDropTick[TEAM_RED] = 0;
+				if(m_Snap.m_pGameDataObj->m_FlagCarrierBlue == FLAG_TAKEN)
+				{
+					if(m_FlagDropTick[TEAM_BLUE] == 0)
+						m_FlagDropTick[TEAM_BLUE] = Client()->GameTick();
+				}
+				else if(m_FlagDropTick[TEAM_BLUE] != 0)
+						m_FlagDropTick[TEAM_BLUE] = 0;
 			}
 			else if(Item.m_Type == NETOBJTYPE_FLAG)
 				m_Snap.m_paFlags[Item.m_ID%2] = (const CNetObj_Flag *)pData;
@@ -909,6 +912,17 @@ void CGameClient::OnNewSnapshot()
 			}
 		}
 	}
+	// sort player infos by team
+	int Teams[3] = { TEAM_RED, TEAM_BLUE, TEAM_SPECTATORS };
+	int Index = 0;
+	for(int Team = 0; Team < 3; ++Team)
+	{
+		for(int i = 0; i < MAX_CLIENTS && Index < MAX_CLIENTS; ++i)
+		{
+			if(m_Snap.m_paPlayerInfos[i] && m_Snap.m_paPlayerInfos[i]->m_Team == Teams[Team])
+				m_Snap.m_paInfoByTeam[Index++] = m_Snap.m_paPlayerInfos[i];
+		}
+	}
 
 	CTuningParams StandardTuning;
 	CServerInfo CurrentServerInfo;
@@ -930,9 +944,9 @@ void CGameClient::OnNewSnapshot()
 		m_DDRaceMsgSent = true;
 
 		if(g_Config.m_ClShowOthers)
-			Console()->ExecuteLine("rcon showothers 1", -1, IConsole::CONSOLELEVEL_USER, 0, 0);
+			Console()->ExecuteLine("rcon showothers 1");
 		else
-			Console()->ExecuteLine("rcon showothers 0", -1, IConsole::CONSOLELEVEL_USER, 0, 0);
+			Console()->ExecuteLine("rcon showothers 0");
 	}
 }
 
@@ -1153,19 +1167,19 @@ void CGameClient::SendKill(int ClientID)
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 }
 
-void CGameClient::ConTeam(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CGameClient::ConTeam(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameClient*)pUserData)->SendSwitchTeam(pResult->GetInteger(0));
 }
 
-void CGameClient::ConKill(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CGameClient::ConKill(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameClient*)pUserData)->SendKill(-1);
 }
 
 void CGameClient::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
-	pfnCallback(pResult, pCallbackUserData, -1);
+	pfnCallback(pResult, pCallbackUserData);
 	if(pResult->NumArguments())
 		((CGameClient*)pUserData)->SendInfo(false);
 }
@@ -1173,11 +1187,4 @@ void CGameClient::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pU
 IGameClient *CreateGameClient()
 {
 	return &g_GameClient;
-}
-
-// DDRace
-
-void ConServerDummy(IConsole::IResult *pResult, void *pUserData, int ClientID)
-{
-	dbg_msg("client", "this command is not available on the client");
 }

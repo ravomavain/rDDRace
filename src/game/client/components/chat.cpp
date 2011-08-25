@@ -1,8 +1,6 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 
-#include <base/tl/string.h>
-
 #include <engine/engine.h>
 #include <engine/graphics.h>
 #include <engine/textrender.h>
@@ -19,6 +17,7 @@
 #include <game/localization.h>
 
 #include "chat.h"
+
 
 CChat::CChat()
 {
@@ -60,17 +59,17 @@ void CChat::OnStateChange(int NewState, int OldState)
 	}
 }
 
-void CChat::ConSay(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CChat::ConSay(IConsole::IResult *pResult, void *pUserData)
 {
 	((CChat*)pUserData)->Say(0, pResult->GetString(0));
 }
 
-void CChat::ConSayTeam(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CChat::ConSayTeam(IConsole::IResult *pResult, void *pUserData)
 {
 	((CChat*)pUserData)->Say(1, pResult->GetString(0));
 }
 
-void CChat::ConChat(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CChat::ConChat(IConsole::IResult *pResult, void *pUserData)
 {
 	const char *pMode = pResult->GetString(0);
 	if(str_comp(pMode, "all") == 0)
@@ -81,17 +80,17 @@ void CChat::ConChat(IConsole::IResult *pResult, void *pUserData, int ClientID)
 		((CChat*)pUserData)->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "expected all or team as mode");
 }
 
-void CChat::ConShowChat(IConsole::IResult *pResult, void *pUserData, int ClientID)
+void CChat::ConShowChat(IConsole::IResult *pResult, void *pUserData)
 {
 	((CChat *)pUserData)->m_Show = pResult->GetInteger(0) != 0;
 }
 
 void CChat::OnConsoleInit()
 {
-	Console()->Register("say", "r", CFGFLAG_CLIENT, ConSay, this, "Say in chat", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("say_team", "r", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("chat", "s", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode", IConsole::CONSOLELEVEL_USER);
-	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat", IConsole::CONSOLELEVEL_USER);
+	Console()->Register("say", "r", CFGFLAG_CLIENT, ConSay, this, "Say in chat");
+	Console()->Register("say_team", "r", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat");
+	Console()->Register("chat", "s", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode");
+	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat");
 }
 
 bool CChat::OnInput(IInput::CEvent Event)
@@ -133,17 +132,28 @@ bool CChat::OnInput(IInput::CEvent Event)
 
 		// find next possible name
 		const char *pCompletionString = 0;
-		m_CompletionChosen = (m_CompletionChosen+1)%MAX_CLIENTS;
-		for(int i = 0; i < MAX_CLIENTS; ++i)
+		m_CompletionChosen = (m_CompletionChosen+1)%(2*MAX_CLIENTS);
+		for(int i = 0; i < 2*MAX_CLIENTS; ++i)
 		{
+			int SearchType = ((m_CompletionChosen+i)%(2*MAX_CLIENTS))/MAX_CLIENTS;
 			int Index = (m_CompletionChosen+i)%MAX_CLIENTS;
 			if(!m_pClient->m_Snap.m_paPlayerInfos[Index])
 				continue;
 
-			if(str_find_nocase(m_pClient->m_aClients[Index].m_aName, m_aCompletionBuffer))
+			bool Found = false;
+			if(SearchType == 1)
+			{
+				if(str_comp_nocase_num(m_pClient->m_aClients[Index].m_aName, m_aCompletionBuffer, str_length(m_aCompletionBuffer)) &&
+					str_find_nocase(m_pClient->m_aClients[Index].m_aName, m_aCompletionBuffer))
+					Found = true;
+			}
+			else if(!str_comp_nocase_num(m_pClient->m_aClients[Index].m_aName, m_aCompletionBuffer, str_length(m_aCompletionBuffer)))
+				Found = true;
+
+			if(Found)
 			{
 				pCompletionString = m_pClient->m_aClients[Index].m_aName;
-				m_CompletionChosen = Index;
+				m_CompletionChosen = Index+SearchType*MAX_CLIENTS;
 				break;
 			}
 		}
@@ -152,10 +162,25 @@ bool CChat::OnInput(IInput::CEvent Event)
 		if(pCompletionString)
 		{
 			char aBuf[256];
+			// add part before the name
 			str_copy(aBuf, m_Input.GetString(), min(static_cast<int>(sizeof(aBuf)), m_PlaceholderOffset+1));
+
+			// add the name
 			str_append(aBuf, pCompletionString, sizeof(aBuf));
+
+			// add seperator
+			const char *pSeparator = "";
+			if(*(m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength) != ' ')
+				pSeparator = m_PlaceholderOffset == 0 ? ": " : " ";
+			else if(m_PlaceholderOffset == 0)
+				pSeparator = ":";
+			if(*pSeparator)
+				str_append(aBuf, pSeparator, sizeof(aBuf));
+
+			// add part after the name
 			str_append(aBuf, m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength, sizeof(aBuf));
-			m_PlaceholderLength = str_length(pCompletionString);
+
+			m_PlaceholderLength = str_length(pSeparator)+str_length(pCompletionString);
 			m_OldChatStringLength = m_Input.GetLength();
 			m_Input.Set(aBuf);
 			m_Input.SetCursorOffset(m_PlaceholderOffset+m_PlaceholderLength);
@@ -185,11 +210,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 			m_pHistoryEntry = m_History.Last();
 
 		if (m_pHistoryEntry)
-		{
-			unsigned int Len = str_length(m_pHistoryEntry);
-			if (Len < sizeof(m_Input) - 1) // TODO: WTF?
-				m_Input.Set(m_pHistoryEntry);
-		}
+			m_Input.Set(m_pHistoryEntry);
 	}
 	else if (Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == KEY_DOWN)
 	{
@@ -197,11 +218,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 			m_pHistoryEntry = m_History.Next(m_pHistoryEntry);
 
 		if (m_pHistoryEntry)
-		{
-			unsigned int Len = str_length(m_pHistoryEntry);
-			if (Len < sizeof(m_Input) - 1) // TODO: WTF?
-				m_Input.Set(m_pHistoryEntry);
-		}
+			m_Input.Set(m_pHistoryEntry);
 		else
 			m_Input.Clear();
 	}
@@ -247,6 +264,7 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 	char *p = const_cast<char*>(pLine);
 	while(*p)
 	{
+		Highlighted = false;
 		pLine = p;
 		// find line seperator and strip multiline
 		while(*p)
@@ -265,9 +283,16 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		m_aLines[m_CurrentLine].m_ClientID = ClientID;
 		m_aLines[m_CurrentLine].m_Team = Team;
 		m_aLines[m_CurrentLine].m_NameColor = -2;
-		m_aLines[m_CurrentLine].m_Highlighted = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_Snap.m_LocalClientID].m_aName) != 0;
-		if(m_aLines[m_CurrentLine].m_Highlighted)
-			Highlighted = true;
+
+		// check for highlighted name
+		const char *pHL = str_find_nocase(pLine, m_pClient->m_aClients[m_pClient->m_Snap.m_LocalClientID].m_aName);
+		if(pHL)
+		{
+			int Length = str_length(m_pClient->m_aClients[m_pClient->m_Snap.m_LocalClientID].m_aName);
+			if((pLine == pHL || pHL[-1] == ' ') && (pHL[Length] == 0 || pHL[Length] == ' ' || (pHL[Length] == ':' && pHL[Length+1] == ' ')))
+				Highlighted = true;
+		}
+		m_aLines[m_CurrentLine].m_Highlighted =  Highlighted;
 
 		if(ClientID == -1) // server message
 		{
@@ -355,7 +380,9 @@ void CChat::OnRender()
 		}
 
 		TextRender()->TextEx(&Cursor, m_Input.GetString()+m_ChatStringOffset, m_Input.GetCursorOffset()-m_ChatStringOffset);
+		static float MarkerOffset = TextRender()->TextWidth(0, 8.0f, "|", -1)/3;
 		CTextCursor Marker = Cursor;
+		Marker.m_X -= MarkerOffset;
 		TextRender()->TextEx(&Marker, "|", -1);
 		TextRender()->TextEx(&Cursor, m_Input.GetString()+m_Input.GetCursorOffset(), -1);
 	}
