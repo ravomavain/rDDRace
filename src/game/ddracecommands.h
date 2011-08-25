@@ -51,8 +51,8 @@ CONSOLE_COMMAND("muteip", "si", CFGFLAG_SERVER, ConMuteIP, this, "");
 CONSOLE_COMMAND("unmute", "v", CFGFLAG_SERVER, ConUnmute, this, "");
 CONSOLE_COMMAND("mutes", "", CFGFLAG_SERVER, ConMutes, this, "");
 
-CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
-CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "", IConsole::CONSOLELEVEL_USER);
+CONSOLE_COMMAND("rescue", "", CFGFLAG_SERVER, ConRescue, this, "");
+CONSOLE_COMMAND("r", "", CFGFLAG_SERVER, ConRescue, this, "");
 
 #if defined(CONF_SQL)
 CONSOLE_COMMAND("times", "?s?i", CFGFLAG_SERVER, ConTimes, this, "/times ?s?i shows last 5 times of the server or of a player beginning with name s starting with time i (i = 1 by default)")

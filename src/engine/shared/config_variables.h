@@ -197,9 +197,9 @@ MACRO_CONFIG_INT(SvVotePauseTime, sv_vote_pause_time, 10, 0, 360, CFGFLAG_SERVER
 
 
 // Rescue
-MACRO_CONFIG_INT(SvRescue, sv_rescue, 0, 0, 2, CFGFLAG_SERVER, "Rescue mode (0: disabled, 1: last grounded position, 2:last checkpoint)", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(SvRescueTime, sv_rescue_time, 0, 0, 9999, CFGFLAG_SERVER, "Time between freeze and /r usage", IConsole::CONSOLELEVEL_ADMIN)
-MACRO_CONFIG_INT(SvRescueUnfreeze, sv_rescue_unfreeze, 0, 0, 1, CFGFLAG_SERVER, "Unfreeze immediately after rescue", IConsole::CONSOLELEVEL_ADMIN)
+MACRO_CONFIG_INT(SvRescue, sv_rescue, 0, 0, 2, CFGFLAG_SERVER, "Rescue mode (0: disabled, 1: last grounded position, 2:last checkpoint)")
+MACRO_CONFIG_INT(SvRescueTime, sv_rescue_time, 0, 0, 9999, CFGFLAG_SERVER, "Time between freeze and /r usage")
+MACRO_CONFIG_INT(SvRescueUnfreeze, sv_rescue_unfreeze, 0, 0, 1, CFGFLAG_SERVER, "Unfreeze immediately after rescue")
 
 // these might need some fine tuning
 MACRO_CONFIG_INT(SvChatPenalty, sv_chat_penalty, 250, 50, 1000, CFGFLAG_SERVER, "chat score will be increased by this on every message, and decremented by 1 on every tick.")

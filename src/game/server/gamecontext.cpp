@@ -743,9 +743,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		if(pMsg->m_pMessage[0]=='/')
 		{
-			ChatResponseInfo Info;
-			Info.m_GameContext = this;
-			Info.m_To = ClientID;
+			//ChatResponseInfo Info;
+			//Info.m_GameContext = this;
+			//Info.m_To = ClientID;
 
 			// Todo(Shereef Marzouk): Follow up on the RCON/Chat redirection
 			Console()->ExecuteLine(pMsg->m_pMessage + 1);
