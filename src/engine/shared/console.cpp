@@ -253,11 +253,12 @@ bool CConsole::LineIsValid(const char *pStr)
 	return true;
 }
 
-void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
+void CConsole::ExecuteLineStroked(int Stroke, const char *pStr, int ClientID)
 {
 	while(pStr && *pStr)
 	{
 		CResult Result;
+		Result.m_ClientID = ClientID;
 		const char *pEnd = pStr;
 		const char *pNextPart = 0;
 		int InString = 0;
@@ -321,7 +322,13 @@ void CConsole::ExecuteLineStroked(int Stroke, const char *pStr)
 						m_ExecutionQueue.m_pLast->m_Result = Result;
 					}
 					else
+					{
+						if(pCommand->m_Flags&CMDFLAG_TEST && !g_Config.m_SvTestingCommands)
+							return;
 						pCommand->m_pfnCallback(&Result, pCommand->m_pUserData);
+						if (pCommand->m_Flags&CMDFLAG_TEST)
+							m_Cheated = true;
+					}
 				}
 			}
 			else if(Stroke)
@@ -368,14 +375,14 @@ CConsole::CCommand *CConsole::FindCommand(const char *pName, int FlagMask)
 	return 0x0;
 }
 
-void CConsole::ExecuteLine(const char *pStr)
+void CConsole::ExecuteLine(const char *pStr, int ClientID)
 {
-	CConsole::ExecuteLineStroked(1, pStr); // press it
-	CConsole::ExecuteLineStroked(0, pStr); // then release it
+	CConsole::ExecuteLineStroked(1, pStr, ClientID); // press it
+	CConsole::ExecuteLineStroked(0, pStr, ClientID); // then release it
 }
 
 
-void CConsole::ExecuteFile(const char *pFilename)
+void CConsole::ExecuteFile(const char *pFilename, int ClientID)
 {
 	// make sure that this isn't being executed already
 	for(CExecFile *pCur = m_pFirstExec; pCur; pCur = pCur->m_pPrev)
@@ -408,7 +415,7 @@ void CConsole::ExecuteFile(const char *pFilename)
 		lr.Init(File);
 
 		while((pLine = lr.Get()))
-			ExecuteLine(pLine);
+			ExecuteLine(pLine, ClientID);
 
 		io_close(File);
 	}
@@ -442,9 +449,15 @@ void CConsole::ConModCommandAccess(IResult *pResult, void *pUser)
 		{
 			pCommand->SetAccessLevel(pResult->GetInteger(1));
 			str_format(aBuf, sizeof(aBuf), "moderator access for '%s' is now %s", pResult->GetString(0), pCommand->GetAccessLevel() ? "enabled" : "disabled");
+			pConsole->Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+			str_format(aBuf, sizeof(aBuf), "user access for '%s' is now %s", pResult->GetString(0), pCommand->GetAccessLevel() >= ACCESS_LEVEL_USER ? "enabled" : "disabled");
 		}
 		else
+		{
 			str_format(aBuf, sizeof(aBuf), "moderator access for '%s' is %s", pResult->GetString(0), pCommand->GetAccessLevel() ? "enabled" : "disabled");
+			pConsole->Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+			str_format(aBuf, sizeof(aBuf), "user access for '%s' is %s", pResult->GetString(0), pCommand->GetAccessLevel() >= ACCESS_LEVEL_USER ? "enabled" : "disabled");
+		}
 	}
 	else
 		str_format(aBuf, sizeof(aBuf), "No such command: '%s'.", pResult->GetString(0));
@@ -461,7 +474,7 @@ void CConsole::ConModCommandStatus(IResult *pResult, void *pUser)
 
 	for(CCommand *pCommand = pConsole->m_pFirstCommand; pCommand; pCommand = pCommand->m_pNext)
 	{
-		if(pCommand->m_Flags&pConsole->m_FlagMask && pCommand->GetAccessLevel() == ACCESS_LEVEL_MOD)
+		if(pCommand->m_Flags&pConsole->m_FlagMask && pCommand->GetAccessLevel() >= ACCESS_LEVEL_MOD)
 		{
 			int Length = str_length(pCommand->m_pName);
 			if(Used + Length + 2 < (int)(sizeof(aBuf)))
@@ -587,6 +600,7 @@ CConsole::CConsole(int FlagMask)
 
 	Register("mod_command", "s?i", CFGFLAG_SERVER, ConModCommandAccess, this, "Specify command accessibility for moderators");
 	Register("mod_status", "", CFGFLAG_SERVER, ConModCommandStatus, this, "List all commands which are accessible for moderators");
+	Register("user_status", "", CFGFLAG_SERVER, ConUserCommandStatus, this, "List all commands which are accessible for users");
 
 	// TODO: this should disappear
 	#define MACRO_CONFIG_INT(Name,ScriptName,Def,Min,Max,Flags,Desc) \
@@ -674,6 +688,9 @@ void CConsole::Register(const char *pName, const char *pParams,
 	pCommand->m_Temp = false;
 
 	AddCommandSorted(pCommand);
+
+	if(pCommand->m_Flags&CFGFLAG_CHAT)
+		pCommand->SetAccessLevel(ACCESS_LEVEL_USER);
 }
 
 void CConsole::RegisterTemp(const char *pName, const char *pParams,	int Flags, const char *pHelp)
@@ -821,3 +838,38 @@ const IConsole::CCommandInfo *CConsole::GetCommandInfo(const char *pName, int Fl
 
 
 extern IConsole *CreateConsole(int FlagMask) { return new CConsole(FlagMask); }
+
+void CConsole::ConUserCommandStatus(IResult *pResult, void *pUser)
+{
+	CConsole* pConsole = static_cast<CConsole *>(pUser);
+	char aBuf[240];
+	mem_zero(aBuf, sizeof(aBuf));
+	int Used = 0;
+
+	for(CCommand *pCommand = pConsole->m_pFirstCommand; pCommand; pCommand = pCommand->m_pNext)
+	{
+		if(pCommand->m_Flags&pConsole->m_FlagMask && pCommand->GetAccessLevel() == ACCESS_LEVEL_USER)
+		{
+			int Length = str_length(pCommand->m_pName);
+			if(Used + Length + 2 < (int)(sizeof(aBuf)))
+			{
+				if(Used > 0)
+				{
+					Used += 2;
+					str_append(aBuf, ", ", sizeof(aBuf));
+				}
+				str_append(aBuf, pCommand->m_pName, sizeof(aBuf));
+				Used += Length;
+			}
+			else
+			{
+				pConsole->Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+				mem_zero(aBuf, sizeof(aBuf));
+				str_copy(aBuf, pCommand->m_pName, sizeof(aBuf));
+				Used = Length;
+			}
+		}
+	}
+	if(Used > 0)
+		pConsole->Print(OUTPUT_LEVEL_STANDARD, "Console", aBuf);
+}

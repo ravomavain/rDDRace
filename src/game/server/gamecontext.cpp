@@ -1,5 +1,8 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
+
+#include <base/tl/sorted_array.h>
+
 #include <new>
 #include <base/math.h>
 #include <engine/shared/config.h>
@@ -50,6 +53,7 @@ void CGameContext::Construct(int Resetting)
 		m_pScore = 0;
 		m_NumMutes = 0;
 	}
+	m_ChatResponseTargetID = -1;
 }
 
 CGameContext::CGameContext(int Resetting)
@@ -639,12 +643,15 @@ void CGameContext::OnClientEnter(int ClientID)
 		SendChatTarget(ClientID, "please visit http://DDRace.info or say /info for more info");
 		SendChatTarget(ClientID, "Rescue mod added by ravomavain : github.com/ravomavain/rDDRace");
 
-		if(g_Config.m_SvWelcome[0]!=0) SendChatTarget(ClientID,g_Config.m_SvWelcome);
+		if(g_Config.m_SvWelcome[0]!=0)
+			SendChatTarget(ClientID,g_Config.m_SvWelcome);
 		str_format(aBuf, sizeof(aBuf), "team_join player='%d:%s' team=%d", ClientID, Server()->ClientName(ClientID), m_apPlayers[ClientID]->GetTeam());
 
 		Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 	}
 	m_VoteUpdate = true;
+
+	m_apPlayers[ClientID]->m_Authed = ((CServer*)Server())->m_aClients[ClientID].m_Authed;
 }
 
 void CGameContext::OnClientConnected(int ClientID)
@@ -743,14 +750,20 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		}
 		if(pMsg->m_pMessage[0]=='/')
 		{
-			//ChatResponseInfo Info;
-			//Info.m_GameContext = this;
-			//Info.m_To = ClientID;
+			m_ChatResponseTargetID = ClientID;
+			Console()->SetFlagMask(CFGFLAG_CHAT);
 
-			// Todo(Shereef Marzouk): Follow up on the RCON/Chat redirection
-			Console()->ExecuteLine(pMsg->m_pMessage + 1);
-			Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "chat",
-					pMsg->m_pMessage);
+			if (pPlayer->m_Authed)
+				Console()->SetAccessLevel(pPlayer->m_Authed == CServer::AUTHED_ADMIN ? IConsole::ACCESS_LEVEL_ADMIN : IConsole::ACCESS_LEVEL_MOD);
+			else
+				Console()->SetAccessLevel(IConsole::ACCESS_LEVEL_USER);
+
+			Console()->ExecuteLine(pMsg->m_pMessage + 1, ClientID);
+			Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "chat-command", pMsg->m_pMessage);
+
+			Console()->SetAccessLevel(IConsole::ACCESS_LEVEL_ADMIN);
+			Console()->SetFlagMask(CFGFLAG_SERVER);
+			m_ChatResponseTargetID = -1;
 		}
 		else
 			SendChat(ClientID, Team, pMsg->m_pMessage, ClientID);
@@ -1626,6 +1639,8 @@ void CGameContext::OnConsoleInit()
 	m_pServer = Kernel()->RequestInterface<IServer>();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
+	Console()->RegisterPrintCallback(0, SendChatResponse, this);
+
 	Console()->Register("tune", "si", CFGFLAG_SERVER, ConTuneParam, this, "Tune variable to value");
 	Console()->Register("tune_reset", "", CFGFLAG_SERVER, ConTuneReset, this, "Reset tuning");
 	Console()->Register("tune_dump", "", CFGFLAG_SERVER, ConTuneDump, this, "Dump tuning");
@@ -1647,6 +1662,8 @@ void CGameContext::OnConsoleInit()
 
 #define CONSOLE_COMMAND(name, params, flags, callback, userdata, help) m_pConsole->Register(name, params, flags, callback, userdata, help);
 #include "game/ddracecommands.h"
+#define CHAT_COMMAND(name, params, flags, callback, userdata, help) m_pConsole->Register(name, params, flags, callback, userdata, help);
+#include "ddracechat.h"
 }
 
 void CGameContext::OnInit(/*class IKernel *pKernel*/)
@@ -1723,9 +1740,9 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 	CTile *pFront = 0;
 	CSwitchTile *pSwitch = 0;
 	if(m_Layers.FrontLayer())
-		pFront = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(pTileMap->m_Front);
+		pFront = (CTile *)Kernel()->RequestInterface<IMap>()->GetData(m_Layers.FrontLayer()->m_Front);
 	if(m_Layers.SwitchLayer())
-		pSwitch = (CSwitchTile *)Kernel()->RequestInterface<IMap>()->GetData(pTileMap->m_Switch);
+		pSwitch = (CSwitchTile *)Kernel()->RequestInterface<IMap>()->GetData(m_Layers.SwitchLayer()->m_Switch);
 
 	for(int y = 0; y < pTileMap->m_Height; y++)
 	{
@@ -1890,7 +1907,11 @@ void CGameContext::SendChatResponseAll(const char *pLine, void *pUser)
 
 void CGameContext::SendChatResponse(const char *pLine, void *pUser)
 {
-	ChatResponseInfo *pInfo = (ChatResponseInfo *)pUser;
+	CGameContext *pSelf = (CGameContext *)pUser;
+	int ClientID = pSelf->m_ChatResponseTargetID;
+
+	if(ClientID < 0 || ClientID >= MAX_CLIENTS)
+		return;
 
 	static volatile int ReentryGuard = 0;
 
@@ -1903,7 +1924,7 @@ void CGameContext::SendChatResponse(const char *pLine, void *pUser)
 		pLine++;
 	while(*(pLine - 2) != ':' && *pLine != 0); // remove the category (e.g. [Console]: No Such Command)
 
-	pInfo->m_GameContext->SendChatTarget(pInfo->m_To, pLine);
+	pSelf->SendChatTarget(ClientID, pLine);
 
 	ReentryGuard--;
 }

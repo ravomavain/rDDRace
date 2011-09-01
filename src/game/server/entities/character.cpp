@@ -644,6 +644,7 @@ void CCharacter::TickDefered()
 	{
 		CWorldCore TempWorld;
 		m_ReckoningCore.Init(&TempWorld, GameServer()->Collision(), &((CGameControllerDDRace*)GameServer()->m_pController)->m_Teams.m_Core);
+		m_ReckoningCore.m_Id = m_pPlayer->GetCID();
 		m_ReckoningCore.Tick(false);
 		m_ReckoningCore.Move();
 		m_ReckoningCore.Quantize();
@@ -654,6 +655,7 @@ void CCharacter::TickDefered()
 	vec2 StartVel = m_Core.m_Vel;
 	bool StuckBefore = GameServer()->Collision()->TestBox(m_Core.m_Pos, vec2(28.0f, 28.0f));
 
+	m_Core.m_Id = m_pPlayer->GetCID();
 	m_Core.Move();
 	bool StuckAfterMove = GameServer()->Collision()->TestBox(m_Core.m_Pos, vec2(28.0f, 28.0f));
 	m_Core.Quantize();
@@ -927,13 +929,15 @@ void CCharacter::Snap(int SnappingClient)
 
 	if (m_DeepFreeze)
 	{
-		pCharacter->m_Emote = EMOTE_PAIN;
+		if (pCharacter->m_Emote == EMOTE_NORMAL)
+			pCharacter->m_Emote = EMOTE_PAIN;
 		pCharacter->m_Weapon = WEAPON_NINJA;
 		pCharacter->m_AmmoCount = 0;
 	}
 	else if (m_FreezeTime > 0 || m_FreezeTime == -1)
 	{
-		pCharacter->m_Emote = EMOTE_BLINK;
+		if (pCharacter->m_Emote == EMOTE_NORMAL)
+			pCharacter->m_Emote = EMOTE_BLINK;
 		pCharacter->m_Weapon = WEAPON_NINJA;
 		pCharacter->m_AmmoCount = 0;
 	}
@@ -1013,7 +1017,7 @@ void CCharacter::HandleSkippableTiles(int Index)
 			GameServer()->Collision()->GetFCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y-m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
 			GameServer()->Collision()->GetCollisionAt(m_Pos.x-m_ProximityRadius/3.f, m_Pos.y+m_ProximityRadius/3.f)&CCollision::COLFLAG_DEATH ||
 			GameLayerClipped(m_Pos)) &&
-			!m_Super)
+			!m_Super && !(Team() && Teams()->TeeFinished(m_pPlayer->GetCID())))
 		{
 			Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 			return;
@@ -1555,7 +1559,6 @@ void CCharacter::DDRaceInit()
 {
 	m_DDRaceState = DDRACE_NONE;
 	m_PrevPos = m_Pos;
-	m_BroadCast = true;
 	m_EyeEmote = true;
 	m_LastBroadcast = 0;
 	m_TeamBeforeSuper = 0;

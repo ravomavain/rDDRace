@@ -176,7 +176,6 @@ private:
 
 	bool m_VoteWillPass;
 	class IScore *m_pScore;
-	int m_ClientID;
 
 	//DDRace Console Commands
 
@@ -231,6 +230,7 @@ private:
 	static void ConToggleBroadcast(IConsole::IResult *pResult, void *pUserData);
 	static void ConEyeEmote(IConsole::IResult *pResult, void *pUserData);
 	static void ConShowOthers(IConsole::IResult *pResult, void *pUserData);
+	static void ConShowOthersChat(IConsole::IResult *pResult, void *pUserData);
 
 	static void ConMute(IConsole::IResult *pResult, void *pUserData);
 	static void ConMuteID(IConsole::IResult *pResult, void *pUserData);
@@ -266,16 +266,13 @@ public:
 	void SendRecord(int ClientID);
 	static void SendChatResponse(const char *pLine, void *pUser);
 	static void SendChatResponseAll(const char *pLine, void *pUser);
-	struct ChatResponseInfo
-	{
-		CGameContext *m_GameContext;
-		int m_To;
-	};
 	virtual void OnSetAuthed(int ClientID,int Level);
 	virtual bool PlayerCollision();
 	virtual bool PlayerHooking();
 
 	void ResetTuning();
+
+	int m_ChatResponseTargetID;
 };
 
 inline int CmaskAll() { return -1; }

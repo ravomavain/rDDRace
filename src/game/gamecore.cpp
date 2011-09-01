@@ -383,6 +383,7 @@ void CCharacterCore::Tick(bool UseInput)
 				{
 					float Accel = m_pWorld->m_Tuning.m_HookDragAccel * (Distance/m_pWorld->m_Tuning.m_HookLength);
 					float DragSpeed = m_pWorld->m_Tuning.m_HookDragSpeed;
+
 					// add force to the hooked player
 					vec2 Temp = pCharCore->m_Vel;
 					Temp.x = SaturatedAdd(-DragSpeed, DragSpeed, pCharCore->m_Vel.x, Accel*Dir.x*1.5f);
@@ -443,7 +444,7 @@ void CCharacterCore::Move()
 			for(int p = 0; p < MAX_CLIENTS; p++)
 			{
 				CCharacterCore *pCharCore = m_pWorld->m_apCharacters[p];
-				if(!pCharCore || pCharCore == this)
+				if(!pCharCore || pCharCore == this || (m_Id != -1 && !m_pTeams->CanCollide(m_Id, p)))
 					continue;
 				float D = distance(Pos, pCharCore->m_Pos);
 				if(D < 28.0f && D > 0.0f)
