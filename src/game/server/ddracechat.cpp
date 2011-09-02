@@ -501,7 +501,7 @@ void CGameContext::ConRescue(IConsole::IResult *pResult, void *pUserData)
 	if(g_Config.m_SvRescue && pPlayer->GetTeam()!=TEAM_SPECTATORS)
 	{
 		CCharacter* pChr = pPlayer->GetCharacter();
-		if(pChr && pChr->m_FreezeTime)
+		if(pChr)
 		{
 			if(pChr->m_FreezeTime!=0)
 			{
