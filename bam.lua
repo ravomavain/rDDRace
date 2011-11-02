@@ -141,6 +141,7 @@ function build(settings)
 
 	if config.compiler.driver == "cl" then
 		settings.cc.flags:Add("/wd4244")
+		settings.cc.flags:Add("/wd4291")
 		settings.cc.flags:Add("/EHsc")
 	else
 		settings.cc.flags:Add("-Wall")
@@ -163,6 +164,11 @@ function build(settings)
 			settings.link.frameworks:Add("AppKit")
 		else
 			settings.link.libs:Add("pthread")
+		end
+		
+		if platform == "solaris" then
+		    settings.link.flags:Add("-lsocket")
+		    settings.link.flags:Add("-lnsl")
 		end
 	elseif family == "windows" then
 		settings.link.libs:Add("gdi32")
