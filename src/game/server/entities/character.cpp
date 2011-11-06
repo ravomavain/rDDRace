@@ -1207,8 +1207,11 @@ void CCharacter::HandleTiles(int Index)
 		}
 	}
 	int tcp = GameServer()->Collision()->IsTCheckpoint(MapIndex);
-	if(tcp)
+	if(m_TeleCheckpoint != tcp)
+	{
+		GameServer()->SendChatTarget(GetPlayer()->GetCID(), "Checkpoint #%d: use /r to go back here.");
 		m_TeleCheckpoint = tcp;
+	}
 	if(((m_TileIndex == TILE_BEGIN) || (m_TileFIndex == TILE_BEGIN) || FTile1 == TILE_BEGIN || FTile2 == TILE_BEGIN || FTile3 == TILE_BEGIN || FTile4 == TILE_BEGIN || Tile1 == TILE_BEGIN || Tile2 == TILE_BEGIN || Tile3 == TILE_BEGIN || Tile4 == TILE_BEGIN) && (m_DDRaceState == DDRACE_NONE || m_DDRaceState == DDRACE_FINISHED || (m_DDRaceState == DDRACE_STARTED && !Team())))
 	{
 		bool CanBegin = true;
