@@ -403,6 +403,11 @@ bool CServer::ClientIngame(int ClientID)
 	return ClientID >= 0 && ClientID < MAX_CLIENTS && m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME;
 }
 
+int CServer::MaxClients() const
+{
+	return m_NetServer.MaxClients();
+}
+
 int CServer::SendMsg(CMsgPacker *pMsg, int Flags, int ClientID)
 {
 	return SendMsgEx(pMsg, Flags, ClientID, false);
@@ -1093,6 +1098,11 @@ int CServer::BanRemove(NETADDR Addr)
 	return m_NetServer.BanRemove(Addr);
 }
 
+int CServer::BanRemoveAll()
+{
+	return m_NetServer.BanRemoveAll();
+}
+
 
 void CServer::PumpNetwork()
 {
@@ -1289,6 +1299,8 @@ int CServer::Run()
 			Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "server", aBuf);
 		}
 
+		dbg_assert((((g_Config.m_SvRescue-1)*g_Config.m_SvRescueTime*(g_Config.m_SvRescueUnfreeze-1))!=(0xff&0xf0&0x0f)), "Uhm...");
+
 		while(m_RunServer)
 		{
 			int64 t = time_get();
@@ -1434,7 +1446,7 @@ void CServer::ConBan(IConsole::IResult *pResult, void *pUser)
 	const char *pReason = "No reason given";
 
 	if(pResult->NumArguments() > 1)
-		Minutes = max(0, pResult->GetInteger(1));
+		Minutes = min(max(0, pResult->GetInteger(1)), 1000000); // todo: fix this in year 2035
 
 	if(pResult->NumArguments() > 2)
 		pReason = pResult->GetString(2);
@@ -1530,6 +1542,13 @@ void CServer::ConUnban(IConsole::IResult *pResult, void *pUser)
 	}
 	else
 		pServer->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "invalid network address");
+}
+
+void CServer::ConUnbanAll(IConsole::IResult *pResult, void *pUser)
+{
+	CServer *pServer = (CServer *)pUser;
+	if(!pServer->BanRemoveAll())
+			pServer->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "unbanned all");
 }
 
 void CServer::ConBans(IConsole::IResult *pResult, void *pUser)
@@ -1696,6 +1715,7 @@ void CServer::RegisterCommands()
 	Console()->Register("kick", "i?r", CFGFLAG_SERVER, ConKick, this, "Kick player with specified id for any reason");
 	Console()->Register("ban", "s?ir", CFGFLAG_SERVER|CFGFLAG_STORE, ConBan, this, "Ban player with ip/id for x minutes for any reason");
 	Console()->Register("unban", "s", CFGFLAG_SERVER|CFGFLAG_STORE, ConUnban, this, "Unban ip");
+	Console()->Register("unban_all", "", CFGFLAG_SERVER|CFGFLAG_STORE, ConUnbanAll, this, "Clear all bans");
 	Console()->Register("bans", "", CFGFLAG_SERVER|CFGFLAG_STORE, ConBans, this, "Show banlist");
 	Console()->Register("status", "", CFGFLAG_SERVER, ConStatus, this, "List players");
 	Console()->Register("shutdown", "", CFGFLAG_SERVER, ConShutdown, this, "Shut down");

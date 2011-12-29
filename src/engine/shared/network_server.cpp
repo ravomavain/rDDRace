@@ -50,16 +50,7 @@ bool CNetServer::Open(NETADDR BindAddr, int MaxClients, int MaxClientsPerIP, int
 	for(int i = 0; i < NET_MAX_CLIENTS; i++)
 		m_aSlots[i].m_Connection.Init(m_Socket);
 
-	// setup all pointers for bans
-	for(int i = 1; i < NET_SERVER_MAXBANS-1; i++)
-	{
-		m_BanPool[i].m_pNext = &m_BanPool[i+1];
-		m_BanPool[i].m_pPrev = &m_BanPool[i-1];
-	}
-
-	m_BanPool[0].m_pNext = &m_BanPool[1];
-	m_BanPool[NET_SERVER_MAXBANS-1].m_pPrev = &m_BanPool[NET_SERVER_MAXBANS-2];
-	m_BanPool_FirstFree = &m_BanPool[0];
+	BanRemoveAll();
 
 	return true;
 }
@@ -148,6 +139,28 @@ int CNetServer::BanRemove(NETADDR Addr)
 	return -1;
 }
 
+int CNetServer::BanRemoveAll()
+{
+	// clear bans memory
+	mem_zero(m_aBans, sizeof(m_aBans));
+	mem_zero(m_BanPool, sizeof(m_BanPool));
+	m_BanPool_FirstFree = 0;
+	m_BanPool_FirstUsed = 0;
+
+	// setup all pointers for bans
+	for(int i = 1; i < NET_SERVER_MAXBANS-1; i++)
+	{
+		m_BanPool[i].m_pNext = &m_BanPool[i+1];
+		m_BanPool[i].m_pPrev = &m_BanPool[i-1];
+	}
+
+	m_BanPool[0].m_pNext = &m_BanPool[1];
+	m_BanPool[NET_SERVER_MAXBANS-1].m_pPrev = &m_BanPool[NET_SERVER_MAXBANS-2];
+	m_BanPool_FirstFree = &m_BanPool[0];
+
+	return 0;
+}
+
 int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 {
 	int IpHash = (Addr.ip[0]+Addr.ip[1]+Addr.ip[2]+Addr.ip[3]+Addr.ip[4]+Addr.ip[5]+Addr.ip[6]+Addr.ip[7]+
@@ -161,15 +174,11 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 	if(Seconds)
 		Stamp = time_timestamp() + Seconds;
 
-	// search to see if it already exists
+	// search to remove it if it already exists
 	pBan = m_aBans[IpHash];
 	MACRO_LIST_FIND(pBan, m_pHashNext, net_addr_comp(&pBan->m_Info.m_Addr, &Addr) == 0);
 	if(pBan)
-	{
-		// adjust the ban
-		pBan->m_Info.m_Expires = Stamp;
-		return 0;
-	}
+		BanRemoveByObject(pBan);
 
 	if(!m_BanPool_FirstFree)
 		return -1;
@@ -193,14 +202,19 @@ int CNetServer::BanAdd(NETADDR Addr, int Seconds, const char *pReason)
 			CBan *pInsertAfter = m_BanPool_FirstUsed;
 			MACRO_LIST_FIND(pInsertAfter, m_pNext, Stamp < pInsertAfter->m_Info.m_Expires);
 
-			if(pInsertAfter)
+			if(pInsertAfter && Stamp != -1)
 				pInsertAfter = pInsertAfter->m_pPrev;
 			else
 			{
 				// add to last
-				pInsertAfter = m_BanPool_FirstUsed;
-				while(pInsertAfter->m_pNext)
-					pInsertAfter = pInsertAfter->m_pNext;
+				if (m_BanPool_FirstUsed->m_Info.m_Expires == -1)
+					pInsertAfter = 0;
+				else
+				{
+					pInsertAfter = m_BanPool_FirstUsed;
+					while(pInsertAfter->m_pNext && pInsertAfter->m_pNext->m_Info.m_Expires != -1)
+						pInsertAfter = pInsertAfter->m_pNext;
+				}
 			}
 
 			if(pInsertAfter)
