@@ -63,6 +63,7 @@ public:
 	void SetEmote(int Emote, int Tick);
 
 	bool IsAlive() const { return m_Alive; }
+	bool IsPaused() const { return m_Paused; }
 	class CPlayer *GetPlayer() { return m_pPlayer; }
 
 private:
@@ -70,6 +71,7 @@ private:
 	class CPlayer *m_pPlayer;
 
 	bool m_Alive;
+	bool m_Paused;
 
 	// weapon info
 	CEntity *m_apHitObjects[10];
@@ -145,6 +147,7 @@ private:
 	void SavePos();
 public:
 	CGameTeams* Teams();
+	void Pause(bool Pause);
 	bool Freeze(int Time);
 	bool Freeze();
 	bool UnFreeze();
@@ -171,8 +174,6 @@ public:
 	};
 	int m_Hit;
 	int m_PainSoundTimer;
-	int m_DefEmote;
-	int m_DefEmoteReset;
 	int m_LastMove;
 	int m_StartTime;
 	int m_RefreshTime;
@@ -213,7 +214,6 @@ public:
 	int m_TileSIndexB;
 	int m_TileSFlagsB;
 	vec2 m_Intersection;
-	bool m_EyeEmote;
 	int64 m_LastStartWarning;
 	// Setters/Getters because i don't want to modify vanilla vars access modifiers
 	int GetLastWeapon() { return m_LastWeapon; };
