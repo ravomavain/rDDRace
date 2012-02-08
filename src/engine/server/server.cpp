@@ -1299,7 +1299,7 @@ int CServer::Run()
 			Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "server", aBuf);
 		}
 
-		dbg_assert((((g_Config.m_SvRescue-1)*g_Config.m_SvRescueTime*(g_Config.m_SvRescueUnfreeze-1))!=(0xff&0xf0&0x0f)), "Uhm...");
+		// dbg_assert((((g_Config.m_SvRescue-1)*g_Config.m_SvRescueTime*(g_Config.m_SvRescueUnfreeze-1))!=(0xff&0xf0&0x0f)), "Uhm...");
 
 		while(m_RunServer)
 		{
